@@ -6,13 +6,13 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/bwmarrin/discordgo"
 )
 
 var conf *Config
+var chandler *CommandHandler
 
 func check(e error) {
 	if e != nil {
@@ -59,6 +59,11 @@ func main() {
 	dg, err := discordgo.New(conf.Token)
 
 	dg.AddHandler(messageCreate)
+	chandler = &CommandHandler{make(map[string]Command)}
+
+	chandler.AddCommand("ping", &Ping{})
+	chandler.AddCommand("setgame", &SetGame{})
+	chandler.AddCommand("me", &Me{})
 
 	err = dg.Open()
 
@@ -71,57 +76,55 @@ func main() {
 	return
 }
 
-func getUserColor(s *discordgo.Session, guildID string, userID string) int {
+func getUserColor(s *discordgo.Session, guild *discordgo.Guild, userID string) int {
 
-	var roles []*discordgo.Role
-	u, err := s.GuildMember(guildID, userID)
+	u, err := s.GuildMember(guild.ID, userID)
 	if err != nil {
 		return 0
 	}
+	var highestrole *discordgo.Role
+	highestrole = &discordgo.Role{Position: 0}
 
-	for _, role := range u.Roles {
-		r, err := s.State.Role(guildID, role)
-		check(err)
-		roles = append(roles, r)
-	}
-
-	for _, role := range roles {
-		if role.Color != 0 {
-			return role.Color
+	for _, role := range guild.Roles {
+		for _, roleid := range u.Roles {
+			if role.ID == roleid {
+				if role.Color != 0 {
+					if highestrole.Position < role.Position {
+						highestrole = role
+					}
+				}
+			}
 		}
 	}
+	return highestrole.Color
+}
 
-	return 0
+type Context struct {
+	Invoked string
+	Args    []string
+	Channel *discordgo.Channel
+	Guild   *discordgo.Guild
+	Message *discordgo.MessageCreate
+	Sess    *discordgo.Session
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	// Ignore all messages created others
+	// Ignore all messages created by other users
 	if m.Author.ID != s.State.User.ID {
 		return
 	}
 
-	// If the message is "ping" reply with "Pong!"
 	if strings.HasPrefix(m.Content, conf.Prefix) {
 		// Setting values for the commands
 		args := strings.Split(m.Content[len(conf.Prefix):len(m.Content)], " ")
 		invoked := args[0]
 		args = args[1:]
 		channel, _ := s.State.Channel(m.ChannelID)
+		guild, _ := s.State.Guild(channel.GuildID)
 
-		if invoked == "ping" {
-			s.ChannelMessageDelete(m.ChannelID, m.ID)
-			color := getUserColor(s, channel.GuildID, m.Author.ID)
-			start := time.Now()
-			msg, _ := s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Pong!", Color: color})
-			elapsed := time.Since(start)
-			s.ChannelMessageEditEmbed(m.ChannelID, msg.ID, &discordgo.MessageEmbed{Description: fmt.Sprintf("Pong! `%s`", elapsed), Color: color})
-		} else if invoked == "setgame" {
-			s.ChannelMessageDelete(m.ChannelID, m.ID)
-			color := getUserColor(s, channel.GuildID, m.Author.ID)
-			game := strings.Join(args, " ")
-			s.UpdateStatus(0, game)
-			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: fmt.Sprintf("Changed game to: **%s**", game), Color: color})
-		}
+		ctx := &Context{invoked, args, channel, guild, m, s}
+
+		chandler.HandleCommands(ctx)
 	}
 }
