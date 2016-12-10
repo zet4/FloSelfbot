@@ -71,6 +71,29 @@ func main() {
 	return
 }
 
+func getUserColor(s *discordgo.Session, guildID string, userID string) int {
+
+	var roles []*discordgo.Role
+	u, err := s.GuildMember(guildID, userID)
+	if err != nil {
+		return 0
+	}
+
+	for _, role := range u.Roles {
+		r, err := s.State.Role(guildID, role)
+		check(err)
+		roles = append(roles, r)
+	}
+
+	for _, role := range roles {
+		if role.Color != 0 {
+			return role.Color
+		}
+	}
+
+	return 0
+}
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created others
@@ -84,13 +107,21 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		args := strings.Split(m.Content[len(conf.Prefix):len(m.Content)], " ")
 		invoked := args[0]
 		args = args[1:]
-		// channel, _ := s.State.Channel(m.ChannelID)
+		channel, _ := s.State.Channel(m.ChannelID)
 
 		if invoked == "ping" {
+			s.ChannelMessageDelete(m.ChannelID, m.ID)
+			color := getUserColor(s, channel.GuildID, m.Author.ID)
 			start := time.Now()
-			msg, _ := s.ChannelMessageSend(m.ChannelID, "Pong!")
+			msg, _ := s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Pong!", Color: color})
 			elapsed := time.Since(start)
-			s.ChannelMessageEdit(m.ChannelID, msg.ID, fmt.Sprintf("Pong! `%s`", elapsed))
+			s.ChannelMessageEditEmbed(m.ChannelID, msg.ID, &discordgo.MessageEmbed{Description: fmt.Sprintf("Pong! `%s`", elapsed), Color: color})
+		} else if invoked == "setgame" {
+			s.ChannelMessageDelete(m.ChannelID, m.ID)
+			color := getUserColor(s, channel.GuildID, m.Author.ID)
+			game := strings.Join(args, " ")
+			s.UpdateStatus(0, game)
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: fmt.Sprintf("Changed game to: **%s**", game), Color: color})
 		}
 	}
 }
