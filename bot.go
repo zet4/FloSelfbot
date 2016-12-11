@@ -11,12 +11,22 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var conf *Config
-var chandler *CommandHandler
+var (
+	conf     *Config
+	chandler *CommandHandler
+	Error    *log.Logger
+	Warning  *log.Logger
+)
 
-func check(e error) {
+func logwarning(e error) {
 	if e != nil {
-		log.Fatal(e)
+		Warning.Println(e)
+	}
+}
+
+func logerror(e error) {
+	if e != nil {
+		Error.Println(e)
 	}
 }
 
@@ -39,10 +49,10 @@ func createConfig() *Config {
 	buf := new(bytes.Buffer)
 	tempconfig := &Config{temptoken, tempprefix}
 
-	check(toml.NewEncoder(buf).Encode(tempconfig))
+	logwarning(toml.NewEncoder(buf).Encode(tempconfig))
 
 	f, err := os.Create("config.toml")
-	check(err)
+	logwarning(err)
 	defer f.Close()
 
 	_, err = f.Write(buf.Bytes())
@@ -51,6 +61,15 @@ func createConfig() *Config {
 }
 
 func main() {
+
+	Warning = log.New(os.Stdout,
+		"WARNING: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
+
+	Error = log.New(os.Stdout,
+		"ERROR: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
+
 	_, err := toml.DecodeFile("config.toml", &conf)
 	if os.IsNotExist(err) {
 		conf = createConfig()
@@ -58,16 +77,20 @@ func main() {
 
 	dg, err := discordgo.New(conf.Token)
 
+	logwarning(err)
+
 	dg.AddHandler(messageCreate)
 	chandler = &CommandHandler{make(map[string]Command)}
 
 	chandler.AddCommand("ping", &Ping{})
 	chandler.AddCommand("setgame", &SetGame{})
 	chandler.AddCommand("me", &Me{})
+	chandler.AddCommand("eval", &Eval{})
+	chandler.AddCommand("clean", &Clean{})
 
 	err = dg.Open()
 
-	check(err)
+	logwarning(err)
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	fmt.Println("Your prefix is", conf.Prefix)
@@ -81,7 +104,7 @@ type Context struct {
 	Args    []string
 	Channel *discordgo.Channel
 	Guild   *discordgo.Guild
-	Message *discordgo.MessageCreate
+	Mess    *discordgo.MessageCreate
 	Sess    *discordgo.Session
 }
 

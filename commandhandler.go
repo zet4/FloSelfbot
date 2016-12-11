@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
@@ -23,13 +24,18 @@ func (ch *CommandHandler) HandleCommands(ctx *Context) {
 	if ctx.Invoked == "help" {
 		ch.HelpFunction(ctx)
 	} else {
-		ch.Commands[ctx.Invoked].Message(ctx)
+		called, ok := ch.Commands[ctx.Invoked]
+		if ok {
+			called.Message(ctx)
+		} else {
+			logerror(errors.New(`Command "` + ctx.Invoked + `" not found`))
+		}
 	}
 }
 
 func (ch *CommandHandler) HelpFunction(ctx *Context) {
-	ctx.Sess.ChannelMessageDelete(ctx.Message.ChannelID, ctx.Message.ID)
-	color := ctx.Sess.State.UserColor(ctx.Message.Author.ID, ctx.Message.ChannelID)
+	ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
+	color := ctx.Sess.State.UserColor(ctx.Mess.Author.ID, ctx.Mess.ChannelID)
 
 	var desc string
 	desc = "Commands:"
@@ -38,6 +44,6 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 		desc += fmt.Sprintf("\n`%s%s` - %s", conf.Prefix, k, v.Description())
 	}
 
-	embed := &discordgo.MessageEmbed{Author: &discordgo.MessageEmbedAuthor{Name: ctx.Message.Author.Username + " - FloSelfbot help", IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Message.Author.ID, ctx.Message.Author.Avatar)}, Description: desc, Color: color}
+	embed := &discordgo.MessageEmbed{Author: &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username + " - FloSelfbot help", IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}, Description: desc, Color: color}
 	ctx.Sess.ChannelMessageSendEmbed(ctx.Channel.ID, embed)
 }
