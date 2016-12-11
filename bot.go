@@ -76,29 +76,6 @@ func main() {
 	return
 }
 
-func getUserColor(s *discordgo.Session, guild *discordgo.Guild, userID string) int {
-
-	u, err := s.GuildMember(guild.ID, userID)
-	if err != nil {
-		return 0
-	}
-	var highestrole *discordgo.Role
-	highestrole = &discordgo.Role{Position: 0}
-
-	for _, role := range guild.Roles {
-		for _, roleid := range u.Roles {
-			if role.ID == roleid {
-				if role.Color != 0 {
-					if highestrole.Position < role.Position {
-						highestrole = role
-					}
-				}
-			}
-		}
-	}
-	return highestrole.Color
-}
-
 type Context struct {
 	Invoked string
 	Args    []string

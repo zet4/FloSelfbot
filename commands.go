@@ -12,7 +12,7 @@ type Ping struct{}
 
 func (p *Ping) Message(ctx *Context) {
 	ctx.Sess.ChannelMessageDelete(ctx.Message.ChannelID, ctx.Message.ID)
-	color := getUserColor(ctx.Sess, ctx.Guild, ctx.Message.Author.ID)
+	color := ctx.Sess.State.UserColor(ctx.Message.Author.ID, ctx.Message.ChannelID)
 	start := time.Now()
 	msg, _ := ctx.Sess.ChannelMessageSendEmbed(ctx.Message.ChannelID, &discordgo.MessageEmbed{Description: "Pong!", Color: color})
 	elapsed := time.Since(start)
@@ -25,7 +25,7 @@ type SetGame struct{}
 
 func (sg *SetGame) Message(ctx *Context) {
 	ctx.Sess.ChannelMessageDelete(ctx.Message.ChannelID, ctx.Message.ID)
-	color := getUserColor(ctx.Sess, ctx.Guild, ctx.Message.Author.ID)
+	color := ctx.Sess.State.UserColor(ctx.Message.Author.ID, ctx.Message.ChannelID)
 	game := strings.Join(ctx.Args, " ")
 	ctx.Sess.UpdateStatus(0, game)
 	ctx.Sess.ChannelMessageSendEmbed(ctx.Message.ChannelID, &discordgo.MessageEmbed{Description: fmt.Sprintf("Changed game to: **%s**", game), Color: color})
@@ -38,7 +38,7 @@ type Me struct{}
 
 func (m *Me) Message(ctx *Context) {
 	ctx.Sess.ChannelMessageDelete(ctx.Message.ChannelID, ctx.Message.ID)
-	color := getUserColor(ctx.Sess, ctx.Guild, ctx.Message.Author.ID)
+	color := ctx.Sess.State.UserColor(ctx.Message.Author.ID, ctx.Message.ChannelID)
 	text := strings.Join(ctx.Args, " ")
 	ctx.Sess.ChannelMessageSendEmbed(ctx.Message.ChannelID, &discordgo.MessageEmbed{Description: fmt.Sprintf("***%s*** *%s*", ctx.Message.Author.Username, text), Color: color})
 }

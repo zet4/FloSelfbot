@@ -29,7 +29,7 @@ func (ch *CommandHandler) HandleCommands(ctx *Context) {
 
 func (ch *CommandHandler) HelpFunction(ctx *Context) {
 	ctx.Sess.ChannelMessageDelete(ctx.Message.ChannelID, ctx.Message.ID)
-	color := getUserColor(ctx.Sess, ctx.Guild, ctx.Message.Author.ID)
+	color := ctx.Sess.State.UserColor(ctx.Message.Author.ID, ctx.Message.ChannelID)
 
 	var desc string
 	desc = "Commands:"
