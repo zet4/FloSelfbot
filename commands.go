@@ -120,3 +120,30 @@ func (q *Quote) Message(ctx *Context) {
 }
 
 func (q *Quote) Description() string { return "Quotes a message from the last 100 messages" }
+
+type Afk struct{}
+
+func (a *Afk) Message(ctx *Context) {
+	ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
+	em := createEmbed(ctx)
+	if AFKMode {
+		AFKMode = false
+		AFKstring = ""
+		em.Description = "AFKMode is now off!"
+		var emfields []*discordgo.MessageEmbedField
+		for _, msg := range AFKMessages {
+			field := &discordgo.MessageEmbedField{Inline: false, Name: msg.Author.Username + " in <#" + msg.ChannelID + ">", Value: msg.Content}
+			emfields = append(emfields, field)
+		}
+		em.Fields = emfields
+		ctx.Sess.ChannelMessageSendEmbed(ctx.Mess.ChannelID, em)
+		AFKMessages = []*discordgo.MessageCreate{}
+	} else {
+		AFKMode = true
+		AFKstring = strings.Join(ctx.Args, " ")
+		em.Description = "AFKMode is now on!"
+		ctx.Sess.ChannelMessageSendEmbed(ctx.Mess.ChannelID, em)
+	}
+}
+
+func (a *Afk) Description() string { return `Sets your selfbot to "AFK Mode"` }

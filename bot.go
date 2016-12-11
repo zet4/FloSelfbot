@@ -16,6 +16,9 @@ var (
 	commandhandler *CommandHandler
 	Error          *log.Logger
 	Warning        *log.Logger
+	AFKMode        bool
+	AFKMessages    []*discordgo.MessageCreate
+	AFKstring      string
 )
 
 func logwarning(e error) {
@@ -70,6 +73,8 @@ func main() {
 		"ERROR: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
+	AFKMode = false
+
 	_, err := toml.DecodeFile("config.toml", &conf)
 	if os.IsNotExist(err) {
 		conf = createConfig()
@@ -88,6 +93,7 @@ func main() {
 	commandhandler.AddCommand("eval", &Eval{})
 	commandhandler.AddCommand("clean", &Clean{})
 	commandhandler.AddCommand("quote", &Quote{})
+	commandhandler.AddCommand("afk", &Afk{})
 
 	err = dg.Open()
 
@@ -110,6 +116,22 @@ type Context struct {
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	if AFKMode {
+		for _, u := range m.Mentions {
+			if u.ID == s.State.User.ID {
+				AFKMessages = append(AFKMessages, m)
+				emcolor := s.State.UserColor(s.State.User.ID, m.ChannelID)
+				em := &discordgo.MessageEmbed{Color: emcolor, Title: fmt.Sprintf("**%s** Is AFK!", s.State.User.Username)}
+				if AFKstring != "" {
+					em.Description = AFKstring
+					s.ChannelMessageSendEmbed(m.ChannelID, em)
+				} else {
+					s.ChannelMessageSendEmbed(m.ChannelID, em)
+				}
+			}
+		}
+	}
 
 	// Ignore all messages created by other users
 	if m.Author.ID != s.State.User.ID {
