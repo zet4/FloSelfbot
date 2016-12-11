@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	conf     *Config
-	chandler *CommandHandler
-	Error    *log.Logger
-	Warning  *log.Logger
+	conf           *Config
+	commandhandler *CommandHandler
+	Error          *log.Logger
+	Warning        *log.Logger
 )
 
 func logwarning(e error) {
@@ -80,20 +80,21 @@ func main() {
 	logwarning(err)
 
 	dg.AddHandler(messageCreate)
-	chandler = &CommandHandler{make(map[string]Command)}
+	commandhandler = &CommandHandler{make(map[string]Command)}
 
-	chandler.AddCommand("ping", &Ping{})
-	chandler.AddCommand("setgame", &SetGame{})
-	chandler.AddCommand("me", &Me{})
-	chandler.AddCommand("eval", &Eval{})
-	chandler.AddCommand("clean", &Clean{})
+	commandhandler.AddCommand("ping", &Ping{})
+	commandhandler.AddCommand("setgame", &SetGame{})
+	commandhandler.AddCommand("me", &Me{})
+	commandhandler.AddCommand("eval", &Eval{})
+	commandhandler.AddCommand("clean", &Clean{})
+	commandhandler.AddCommand("quote", &Quote{})
 
 	err = dg.Open()
 
 	logwarning(err)
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
-	fmt.Println("Your prefix is", conf.Prefix)
+	fmt.Println("Type", conf.Prefix+"help", "to see all commands!")
 
 	<-make(chan struct{})
 	return
@@ -125,6 +126,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		ctx := &Context{invoked, args, channel, guild, m, s}
 
-		chandler.HandleCommands(ctx)
+		commandhandler.HandleCommands(ctx)
 	}
 }
