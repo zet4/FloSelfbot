@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/bwmarrin/discordgo"
@@ -34,31 +34,43 @@ func logerror(e error) {
 }
 
 type Config struct {
-	Token  string
-	Prefix string
+	Token   string
+	Prefix  string
+	LogMode bool
 }
 
 func createConfig() *Config {
-	var tempprefix string
-	var temptoken string
+	var (
+		tempprefix   string
+		temptoken    string
+		templogmodes string
+		templogmode  bool
+	)
 
 	fmt.Println("No config file found, so let's make one!")
 	fmt.Println("\nTo find your User Token. In browser or desktop Discord, type Ctrl-Shift-I. Go to the Console section, and type localStorage.token. Your user token will appear. Do not share this token with anyone! This token provides complete access to your Discord account, so never share it!")
-	fmt.Println("\nInput your User Token here: ")
+	fmt.Print("\nInput your User Token here: ")
 	fmt.Scanln(&temptoken)
-	fmt.Println("Input your desired prefix here: ")
+	fmt.Print("\nInput your desired prefix here: ")
 	fmt.Scanln(&tempprefix)
 
-	buf := new(bytes.Buffer)
-	tempconfig := &Config{temptoken, tempprefix}
-
-	logwarning(toml.NewEncoder(buf).Encode(tempconfig))
-
+	notgoodanswer := true
+	for notgoodanswer {
+		fmt.Println("\nDo you want LogMode to be on? (Y/N): ")
+		fmt.Scanln(&templogmodes)
+		if strings.ToLower(templogmodes) == "y" {
+			notgoodanswer = false
+			templogmode = true
+		} else if strings.ToLower(templogmodes) == "n" {
+			notgoodanswer = false
+			templogmode = false
+		}
+	}
+	tempconfig := &Config{temptoken, tempprefix, templogmode}
 	f, err := os.Create("config.toml")
 	logwarning(err)
 	defer f.Close()
-
-	_, err = f.Write(buf.Bytes())
+	logwarning(toml.NewEncoder(f).Encode(tempconfig))
 
 	return tempconfig
 }
@@ -94,6 +106,8 @@ func main() {
 	commandhandler.AddCommand("clean", &Clean{})
 	commandhandler.AddCommand("quote", &Quote{})
 	commandhandler.AddCommand("afk", &Afk{})
+	commandhandler.AddCommand("changeprefix", &ChangePrefix{})
+	commandhandler.AddCommand("togglelogmode", &ToggleLogMode{})
 
 	err = dg.Open()
 
@@ -115,7 +129,41 @@ type Context struct {
 	Sess    *discordgo.Session
 }
 
+func logmessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if conf.LogMode {
+		var f *os.File
+		var channel *discordgo.Channel
+		var guildname string
+		var channelname string
+
+		channel, _ = s.State.Channel(m.ChannelID)
+		guild, err := s.State.Guild(channel.GuildID)
+		if err != nil {
+			guildname = "Direct Message"
+			channelname = channel.Recipient.Username
+		} else {
+			guildname = guild.Name
+			channelname = channel.Name
+		}
+
+		f, err = os.OpenFile(fmt.Sprintf("./logs/%s/%s.txt", guildname, channelname), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0777)
+		if os.IsNotExist(err) {
+			os.MkdirAll(fmt.Sprintf("./logs/%s", guildname), 0777)
+			f, _ = os.OpenFile(fmt.Sprintf("./logs/%s/%s.txt", guildname, channelname), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0777)
+		}
+		defer f.Close()
+
+		timestamp, err := m.Timestamp.Parse()
+		logerror(err)
+
+		timestampo := timestamp.Format(time.ANSIC)
+		f.Write([]byte(fmt.Sprintf("%s %s#%s (%s): %s\r\n", timestampo, m.Author.Username, m.Author.Discriminator, m.Author.ID, m.ContentWithMentionsReplaced())))
+	}
+}
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	logmessage(s, m)
 
 	if AFKMode {
 		for _, u := range m.Mentions {

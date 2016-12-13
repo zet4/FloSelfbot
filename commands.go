@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/bwmarrin/discordgo"
 	"github.com/robertkrimen/otto"
 )
@@ -14,6 +16,14 @@ func createEmbed(ctx *Context) *discordgo.MessageEmbed {
 	color := ctx.Sess.State.UserColor(ctx.Mess.Author.ID, ctx.Mess.ChannelID)
 	return &discordgo.MessageEmbed{Color: color}
 }
+
+// func (s *Name) Message(ctx *Context) {
+//
+// }
+//
+// func (s *Name) Description() string { return "" }
+// func (s *Name) Usage() string       { return "" }
+// func (s *Name) Detailed() string    { return "" }
 
 type Ping struct{}
 
@@ -29,6 +39,8 @@ func (p *Ping) Message(ctx *Context) {
 }
 
 func (p *Ping) Description() string { return "Measures latency" }
+func (p *Ping) Usage() string       { return "" }
+func (p *Ping) Detailed() string    { return "Measures latency" }
 
 type SetGame struct{}
 
@@ -43,6 +55,10 @@ func (sg *SetGame) Message(ctx *Context) {
 }
 
 func (sg *SetGame) Description() string { return "Sets your game to anything you like" }
+func (sg *SetGame) Usage() string       { return "<game>" }
+func (sg *SetGame) Detailed() string {
+	return "Changes your 'Playing' status on discord (Because of discord you cant see the change yourself.)"
+}
 
 type Me struct{}
 
@@ -55,6 +71,8 @@ func (m *Me) Message(ctx *Context) {
 }
 
 func (m *Me) Description() string { return "Says stuff" }
+func (m *Me) Usage() string       { return "<message>" }
+func (m *Me) Detailed() string    { return "Says stuff." }
 
 type Eval struct{}
 
@@ -75,6 +93,10 @@ func (e *Eval) Message(ctx *Context) {
 }
 
 func (e *Eval) Description() string { return "Evaluates using Otto (Advanced stuff, don't bother)" }
+func (e *Eval) Usage() string       { return "<toEval>" }
+func (e *Eval) Detailed() string {
+	return "I'm serious, don't bother with this command."
+}
 
 type Clean struct{}
 
@@ -93,6 +115,10 @@ func (c *Clean) Message(ctx *Context) {
 }
 
 func (c *Clean) Description() string { return "Cleans up your messages" }
+func (c *Clean) Usage() string       { return "<amount>" }
+func (c *Clean) Detailed() string {
+	return "If you realise you have been spamming a little, this is the command to use then."
+}
 
 type Quote struct{}
 
@@ -120,6 +146,10 @@ func (q *Quote) Message(ctx *Context) {
 }
 
 func (q *Quote) Description() string { return "Quotes a message from the last 100 messages" }
+func (q *Quote) Usage() string       { return "<messageID>" }
+func (q *Quote) Detailed() string {
+	return "To find messageID you first need to turn on Developer mode in discord, then right click any message and click 'Copy ID'"
+}
 
 type Afk struct{}
 
@@ -147,3 +177,53 @@ func (a *Afk) Message(ctx *Context) {
 }
 
 func (a *Afk) Description() string { return `Sets your selfbot to "AFK Mode"` }
+func (a *Afk) Usage() string       { return "[message]" }
+func (a *Afk) Detailed() string {
+	return "Lets people know when you are AFK (Might be removed soon cuz discord selfbot guidelines)"
+}
+
+type ChangePrefix struct{}
+
+func (cp *ChangePrefix) Message(ctx *Context) {
+	ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
+	newprefix := strings.Join(ctx.Args, " ")
+	conf.Prefix = newprefix
+
+	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	logwarning(err)
+	defer f.Close()
+	logwarning(toml.NewEncoder(f).Encode(conf))
+
+	em := createEmbed(ctx)
+	em.Description = fmt.Sprintf("Changed prefix to **%s**", newprefix)
+	ctx.Sess.ChannelMessageSendEmbed(ctx.Mess.ChannelID, em)
+}
+
+func (cp *ChangePrefix) Description() string { return `Changes your prefix` }
+func (cp *ChangePrefix) Usage() string       { return "<newprefix>" }
+func (cp *ChangePrefix) Detailed() string {
+	return "Changes your prefix (You can do the same by editing the config.toml file)"
+}
+
+type ToggleLogMode struct{}
+
+func (l *ToggleLogMode) Message(ctx *Context) {
+	ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
+	newlogmode := !conf.LogMode
+	conf.LogMode = newlogmode
+
+	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	logwarning(err)
+	defer f.Close()
+	logwarning(toml.NewEncoder(f).Encode(conf))
+
+	em := createEmbed(ctx)
+	em.Description = fmt.Sprintf("Toggled LogMode to **%s**", strconv.FormatBool(newlogmode))
+	ctx.Sess.ChannelMessageSendEmbed(ctx.Mess.ChannelID, em)
+}
+
+func (l *ToggleLogMode) Description() string { return `Toggles logmode` }
+func (l *ToggleLogMode) Usage() string       { return "" }
+func (l *ToggleLogMode) Detailed() string {
+	return "Toggles Logmode on or off (You can do the same by editing the config.toml file)"
+}
