@@ -24,11 +24,11 @@ func (ch *CommandHandler) AddCommand(n string, c Command) {
 
 func (ch *CommandHandler) HandleCommands(ctx *Context) {
 	if ctx.Invoked == "help" {
-		ch.HelpFunction(ctx)
+		go ch.HelpFunction(ctx)
 	} else {
 		called, ok := ch.Commands[ctx.Invoked]
 		if ok {
-			called.Message(ctx)
+			go called.Message(ctx)
 		} else {
 			logerror(errors.New(`Command "` + ctx.Invoked + `" not found`))
 		}
@@ -48,11 +48,12 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 		}
 	} else {
 		desc = "Commands:"
-
+		desc += fmt.Sprintf(" `%shelp [command]` for more info!", conf.Prefix)
 		for k, v := range ch.Commands {
 			desc += fmt.Sprintf("\n`%s%s` - %s", conf.Prefix, k, v.Description())
 		}
 	}
-	embed := &discordgo.MessageEmbed{Author: &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username + " - FloSelfbot help", IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}, Description: desc, Color: color}
+	embed := &discordgo.MessageEmbed{Author: &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}, Description: desc, Color: color}
+	embed.Description += "\n\n" + ctx.Mess.Author.Username + " is using a version of [FloSelfbot!](https://github.com/Moonlington/FloSelfbot)"
 	ctx.Sess.ChannelMessageSendEmbed(ctx.Channel.ID, embed)
 }
