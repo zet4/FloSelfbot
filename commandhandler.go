@@ -12,6 +12,7 @@ type Command interface {
 	Description() string
 	Usage() string
 	Detailed() string
+	Subcommands() map[string]Command
 }
 
 type CommandHandler struct {
@@ -22,13 +23,31 @@ func (ch *CommandHandler) AddCommand(n string, c Command) {
 	ch.Commands[n] = c
 }
 
+func HandleSubcommands(ctx *Context, called Command) (*Context, Command) {
+	if len(ctx.Args) != 0 {
+		scalled, sok := called.Subcommands()[ctx.Args[0]]
+		if sok {
+			ctx.Invoked += " " + ctx.Args[0]
+			ctx.Args = ctx.Args[1:]
+			return HandleSubcommands(ctx, scalled)
+		} else {
+			return ctx, called
+		}
+	} else {
+		return ctx, called
+	}
+}
+
 func (ch *CommandHandler) HandleCommands(ctx *Context) {
 	if ctx.Invoked == "help" {
+		ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
 		go ch.HelpFunction(ctx)
 	} else {
 		called, ok := ch.Commands[ctx.Invoked]
 		if ok {
-			go called.Message(ctx)
+			ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
+			rctx, rcalled := HandleSubcommands(ctx, called)
+			rcalled.Message(rctx)
 		} else {
 			logerror(errors.New(`Command "` + ctx.Invoked + `" not found`))
 		}
@@ -36,15 +55,21 @@ func (ch *CommandHandler) HandleCommands(ctx *Context) {
 }
 
 func (ch *CommandHandler) HelpFunction(ctx *Context) {
-	ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
-	color := ctx.Sess.State.UserColor(ctx.Mess.Author.ID, ctx.Mess.ChannelID)
+	embed := createEmbed(ctx)
 	var desc string
 	if len(ctx.Args) != 0 {
-		called, ok := ch.Commands[ctx.Args[0]]
+		ctx.Invoked = ""
+		command := ctx.Args[0]
+		called, ok := ch.Commands[command]
+		ctx.Args = ctx.Args[1:]
 		if ok {
-			desc = fmt.Sprintf("`%s%s %s`\n%s", conf.Prefix, ctx.Args[0], called.Usage(), called.Detailed())
+			sctx, scalled := HandleSubcommands(ctx, called)
+			desc = fmt.Sprintf("`%s%s %s`\n%s", conf.Prefix, command+sctx.Invoked, scalled.Usage(), scalled.Detailed())
+			for k, v := range scalled.Subcommands() {
+				desc += fmt.Sprintf("\n`%s%s %s` - %s", conf.Prefix, command, k, v.Description())
+			}
 		} else {
-			desc = "No command called " + ctx.Args[0] + " found!"
+			desc = "No command called `" + command + "` found!"
 		}
 	} else {
 		desc = "Commands:"
@@ -53,7 +78,8 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 			desc += fmt.Sprintf("\n`%s%s` - %s", conf.Prefix, k, v.Description())
 		}
 	}
-	embed := &discordgo.MessageEmbed{Author: &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}, Description: desc, Color: color}
-	embed.Description += "\n\n" + ctx.Mess.Author.Username + " is using a version of [FloSelfbot!](https://github.com/Moonlington/FloSelfbot)"
+	embed.Author = &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}
+	embed.Description = desc
+	embed.Description += "\n\nFloSelfbot [v" + version + "](https://github.com/Moonlington/FloSelfbot)"
 	ctx.Sess.ChannelMessageSendEmbed(ctx.Channel.ID, embed)
 }
