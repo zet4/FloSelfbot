@@ -1,3 +1,7 @@
 *.toml
 *.exe
 logs/
+FloSelfbot
+*.sh
+*.bat
+*.rar

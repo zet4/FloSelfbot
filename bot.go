@@ -11,6 +11,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const version string = "3.0"
+
 var (
 	conf           *Config
 	commandhandler *CommandHandler
@@ -19,6 +21,7 @@ var (
 	AFKMode        bool
 	AFKMessages    []*discordgo.MessageCreate
 	AFKstring      string
+	Mgtoggle       bool
 )
 
 func logwarning(e error) {
@@ -37,7 +40,10 @@ type Config struct {
 	Token            string
 	Prefix           string
 	LogMode          bool
+	EmbedColor       string
 	MultiGameStrings []string
+	MultiGameMinutes int
+	MultigameToggled bool
 }
 
 func editConfigfile(conf *Config) {
@@ -59,7 +65,7 @@ func createConfig() *Config {
 	fmt.Print("\nInput your desired prefix here: ")
 	fmt.Scanln(&tempprefix)
 
-	tempconfig := &Config{temptoken, tempprefix, false, []string{}}
+	tempconfig := &Config{temptoken, tempprefix, false, "#000000", []string{}, 5, false}
 	editConfigfile(tempconfig)
 
 	return tempconfig
@@ -67,19 +73,23 @@ func createConfig() *Config {
 
 func MultiGameFunc(s *discordgo.Session) {
 	for {
-		if len(conf.MultiGameStrings) != 0 {
+		if len(conf.MultiGameStrings) != 0 && conf.MultigameToggled {
 			a := conf.MultiGameStrings
 			newstring, a := a[0], a[1:]
 			conf.MultiGameStrings = append(a, newstring)
 			err := s.UpdateStatus(0, newstring)
 			logerror(err)
 		}
-		time.Sleep(time.Minute * 5)
+		if conf.MultiGameMinutes < 1 {
+			conf.MultiGameMinutes = 1
+			editConfigfile(conf)
+		}
+		time.Sleep(time.Minute * time.Duration(conf.MultiGameMinutes))
 	}
 }
 
 func main() {
-
+	Mgtoggle = false
 	Warning = log.New(os.Stdout,
 		"WARNING: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
@@ -106,13 +116,14 @@ func main() {
 	commandhandler.AddCommand("ping", &Ping{})
 	commandhandler.AddCommand("setgame", &SetGame{})
 	commandhandler.AddCommand("me", &Me{})
+	commandhandler.AddCommand("embed", &Embed{})
 	commandhandler.AddCommand("eval", &Eval{})
 	commandhandler.AddCommand("clean", &Clean{})
 	commandhandler.AddCommand("quote", &Quote{})
 	commandhandler.AddCommand("afk", &Afk{})
-	commandhandler.AddCommand("changeprefix", &ChangePrefix{})
-	commandhandler.AddCommand("togglelogmode", &ToggleLogMode{})
-	commandhandler.AddCommand("addmgstring", &AddMultiGameString{})
+	commandhandler.AddCommand("config", &Configcommand{})
+	commandhandler.AddCommand("multigame", &MultiGame{})
+	// commandhandler.AddCommand("emote", &Emote{})
 
 	err = dg.Open()
 
@@ -121,7 +132,10 @@ func main() {
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	fmt.Println("Type", conf.Prefix+"help", "to see all commands!")
 
-	go MultiGameFunc(dg)
+	if conf.MultigameToggled {
+		Mgtoggle = true
+		go MultiGameFunc(dg)
+	}
 
 	<-make(chan struct{})
 	return
@@ -134,6 +148,10 @@ type Context struct {
 	Guild   *discordgo.Guild
 	Mess    *discordgo.MessageCreate
 	Sess    *discordgo.Session
+}
+
+func (ctx *Context) SendEm(em *discordgo.MessageEmbed) (*discordgo.Message, error) {
+	return ctx.Sess.ChannelMessageSendEmbed(ctx.Mess.ChannelID, em)
 }
 
 func logmessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -193,15 +211,33 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	// i1 := strings.Index(m.Content, ":")
+	// if i1 != -1 {
+	// 	i2 := strings.Index(m.Content[i1+1:], ":")
+	// 	if i2 != -1 {
+	// 		emote := m.Content[i1+1 : i2+1]
+	// 		exp, ok := conf.Emotes[emote]
+	// 		if ok {
+	// 			content := m.Content[:i1] + exp + m.Content[i2:]
+	// 			s.ChannelMessageSend(m.ChannelID, content)
+	// 		}
+	// 	}
+	// }
+
 	if strings.HasPrefix(m.Content, conf.Prefix) {
 		// Setting values for the commands
+		var ctx *Context
 		args := strings.Split(m.Content[len(conf.Prefix):len(m.Content)], " ")
 		invoked := args[0]
 		args = args[1:]
-		channel, _ := s.State.Channel(m.ChannelID)
-		guild, _ := s.State.Guild(channel.GuildID)
-
-		ctx := &Context{invoked, args, channel, guild, m, s}
+		channel, err := s.State.Channel(m.ChannelID)
+		if err != nil {
+			channel, err = s.State.PrivateChannel(m.ChannelID)
+			ctx = &Context{invoked, args, channel, nil, m, s}
+		} else {
+			guild, _ := s.State.Guild(channel.GuildID)
+			ctx = &Context{invoked, args, channel, guild, m, s}
+		}
 
 		commandhandler.HandleCommands(ctx)
 	}
