@@ -2,7 +2,13 @@
 Floretta's selfbot anyone can use
 
 ## Installing
-Head over to the [releases](https://github.com/Moonlington/FloSelfbot/releases) and download the latest version of the selfbot. It is recommended to put it in a seperate folder all alone (Don't worry, it makes friends fast.) After that just run the .exe file and it'll run you through the installation process.
+Head over to the [releases](https://github.com/Moonlington/FloSelfbot/releases) and download the latest version of the selfbot. It is recommended to put it in a seperate folder all alone (Don't worry, it makes friends fast.)
+
+## Running
+### Windows
+Unrar and run the .exe, simple :D
+### OSX and Linux
+Bit trickier, after unrar-ing you have to open terminal and then do `chmod +x <path to FloSelfbot_OSX/FloSelfbot_LINUX>` it should then create an executable you can double click! (Not tested on Linux yet, bit experimental)
 
 ## Updating
-Replace the old exe with the new exe, it's that simple
+Replace the old executable with the new one (and do all that jazz above), simple enough right?
