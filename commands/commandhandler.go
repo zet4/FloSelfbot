@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"errors"
@@ -64,18 +64,18 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 		ctx.Args = ctx.Args[1:]
 		if ok {
 			sctx, scalled := HandleSubcommands(ctx, called)
-			desc = fmt.Sprintf("`%s%s %s`\n%s", conf.Prefix, command+sctx.Invoked, scalled.Usage(), scalled.Detailed())
+			desc = fmt.Sprintf("`%s%s %s`\n%s", ctx.Conf.Prefix, command+sctx.Invoked, scalled.Usage(), scalled.Detailed())
 			for k, v := range scalled.Subcommands() {
-				desc += fmt.Sprintf("\n`%s%s %s` - %s", conf.Prefix, command, k, v.Description())
+				desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, v.Description())
 			}
 		} else {
 			desc = "No command called `" + command + "` found!"
 		}
 	} else {
 		desc = "Commands:"
-		desc += fmt.Sprintf(" `%shelp [command]` for more info!", conf.Prefix)
+		desc += fmt.Sprintf(" `%shelp [command]` for more info!", ctx.Conf.Prefix)
 		for k, v := range ch.Commands {
-			desc += fmt.Sprintf("\n`%s%s` - %s", conf.Prefix, k, v.Description())
+			desc += fmt.Sprintf("\n`%s%s` - %s", ctx.Conf.Prefix, k, v.Description())
 		}
 	}
 	embed.Author = &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}
