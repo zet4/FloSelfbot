@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/bwmarrin/discordgo"
@@ -12,14 +13,17 @@ import (
 
 const version string = "3.1"
 
+var currentgame string = ""
+
 type Config struct {
-	Token            string
-	Prefix           string
-	LogMode          bool
-	EmbedColor       string
-	MultiGameStrings []string
-	MultiGameMinutes int
-	MultigameToggled bool
+	Token             string
+	Prefix            string
+	LogMode           bool
+	EmbedColor        string
+	MultiGameStrings  []string
+	MultiGameMinutes  int
+	MultigameToggled  bool
+	AutoDeleteSeconds int
 }
 
 type Context struct {
@@ -51,7 +55,20 @@ func editConfigfile(conf *Config) {
 	logwarning(toml.NewEncoder(f).Encode(conf))
 }
 
+func WaitandDelete(ctx *Context, m *discordgo.Message) {
+	time.Sleep(time.Second * time.Duration(ctx.Conf.AutoDeleteSeconds))
+	ctx.Sess.ChannelMessageDelete(m.ChannelID, m.ID)
+}
+
 func (ctx *Context) SendEm(em *discordgo.MessageEmbed) (*discordgo.Message, error) {
+	m, err := ctx.Sess.ChannelMessageSendEmbed(ctx.Mess.ChannelID, em)
+	if ctx.Conf.AutoDeleteSeconds != 0 {
+		go WaitandDelete(ctx, m)
+	}
+	return m, err
+}
+
+func (ctx *Context) SendEmNoDelete(em *discordgo.MessageEmbed) (*discordgo.Message, error) {
 	return ctx.Sess.ChannelMessageSendEmbed(ctx.Mess.ChannelID, em)
 }
 

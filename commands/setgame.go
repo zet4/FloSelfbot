@@ -13,6 +13,7 @@ func (sg *SetGame) Message(ctx *Context) {
 		game := strings.Join(ctx.Args, " ")
 		em.Description = fmt.Sprintf("Changed game to **%s**", game)
 		ctx.Sess.UpdateStatus(0, game)
+		currentgame = game
 		ctx.SendEm(em)
 	} else {
 		em := createEmbed(ctx)

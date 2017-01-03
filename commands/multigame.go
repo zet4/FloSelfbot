@@ -18,6 +18,7 @@ func MultiGameFunc(s *discordgo.Session, conf *Config) {
 			newstring, a := a[0], a[1:]
 			conf.MultiGameStrings = append(a, newstring)
 			err := s.UpdateStatus(0, newstring)
+			currentgame = newstring
 			logerror(err)
 		}
 		if conf.MultiGameMinutes < 1 {

@@ -31,7 +31,17 @@ func (a *Afk) Message(ctx *Context) {
 	} else {
 		AFKMode = true
 		AFKstring = strings.Join(ctx.Args, " ")
+		var txt string
+		if AFKstring != "" {
+			txt = "AFK - " + AFKstring
+		} else {
+			txt = "AFK"
+		}
 		em.Description = "AFKMode is now on!"
+		err := ctx.Sess.UpdateStatus(0, txt)
+		currentgame = txt
+		logerror(err)
+		ctx.Conf.MultigameToggled = false
 		ctx.SendEm(em)
 	}
 }

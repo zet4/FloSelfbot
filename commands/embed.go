@@ -15,7 +15,7 @@ func (e *Embed) Message(ctx *Context) {
 		ctx.SendEm(em)
 	} else {
 		em.Description = fmt.Sprintf("***%s*** *was silent...*", ctx.Mess.Author.Username)
-		ctx.SendEm(em)
+		ctx.SendEmNoDelete(em)
 	}
 }
 

@@ -100,6 +100,36 @@ func (r *ReloadConfig) Detailed() string {
 }
 func (r *ReloadConfig) Subcommands() map[string]Command { return make(map[string]Command) }
 
+type ChangeAutoDeleteTimer struct{}
+
+func (cadt *ChangeAutoDeleteTimer) Message(ctx *Context) {
+	if len(ctx.Args) != 0 {
+		em := createEmbed(ctx)
+		delay, err := strconv.Atoi(ctx.Args[0])
+		if err != nil {
+			em.Description = "Invalid time!"
+			ctx.SendEm(em)
+			return
+		}
+		ctx.Conf.AutoDeleteSeconds = delay
+		editConfigfile(ctx.Conf)
+		em.Description = fmt.Sprintf("Autodelete timer set to **%s** seconds", ctx.Args[0])
+		ctx.SendEm(em)
+	} else {
+		em := createEmbed(ctx)
+		em.Description = "No int specified!"
+		ctx.SendEm(em)
+	}
+}
+func (cadt *ChangeAutoDeleteTimer) Description() string {
+	return "Changes autodelete timer (in seconds)"
+}
+func (cadt *ChangeAutoDeleteTimer) Usage() string { return "<seconds>" }
+func (cadt *ChangeAutoDeleteTimer) Detailed() string {
+	return "Changes how many seconds it takes for the selfbot to delete its post (in seconds) For it to not delete, use 0."
+}
+func (cadt *ChangeAutoDeleteTimer) Subcommands() map[string]Command { return make(map[string]Command) }
+
 type Configcommand struct{}
 
 func (c *Configcommand) Message(ctx *Context) {
@@ -118,5 +148,5 @@ func (c *Configcommand) Detailed() string {
 	return "Commands related to the config file, like changing color, changing prefix, etc."
 }
 func (c *Configcommand) Subcommands() map[string]Command {
-	return map[string]Command{"togglelogmode": &ToggleLogMode{}, "reload": &ReloadConfig{}, "changeprefix": &ChangePrefix{}, "changecolor": &ChangeEmbedColor{}}
+	return map[string]Command{"togglelogmode": &ToggleLogMode{}, "reload": &ReloadConfig{}, "changeprefix": &ChangePrefix{}, "changecolor": &ChangeEmbedColor{}, "setautodelete": &ChangeAutoDeleteTimer{}}
 }

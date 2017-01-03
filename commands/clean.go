@@ -8,7 +8,7 @@ func (c *Clean) Message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		limit, err := strconv.Atoi(ctx.Args[0])
 		logerror(err)
-		msgs, err := ctx.Sess.ChannelMessages(ctx.Mess.ChannelID, limit, ctx.Mess.ID, "")
+		msgs, err := ctx.Sess.ChannelMessages(ctx.Mess.ChannelID, limit, ctx.Mess.ID, "", "")
 		logerror(err)
 		for _, msg := range msgs {
 			if msg.Author.ID == ctx.Sess.State.User.ID {
