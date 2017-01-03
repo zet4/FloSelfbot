@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -25,7 +26,7 @@ func (ch *CommandHandler) AddCommand(n string, c Command) {
 
 func HandleSubcommands(ctx *Context, called Command) (*Context, Command) {
 	if len(ctx.Args) != 0 {
-		scalled, sok := called.Subcommands()[ctx.Args[0]]
+		scalled, sok := called.Subcommands()[strings.ToLower(ctx.Args[0])]
 		if sok {
 			ctx.Invoked += " " + ctx.Args[0]
 			ctx.Args = ctx.Args[1:]
@@ -39,11 +40,11 @@ func HandleSubcommands(ctx *Context, called Command) (*Context, Command) {
 }
 
 func (ch *CommandHandler) HandleCommands(ctx *Context) {
-	if ctx.Invoked == "help" {
+	if strings.ToLower(ctx.Invoked) == "help" {
 		ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
 		go ch.HelpFunction(ctx)
 	} else {
-		called, ok := ch.Commands[ctx.Invoked]
+		called, ok := ch.Commands[strings.ToLower(ctx.Invoked)]
 		if ok {
 			ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
 			rctx, rcalled := HandleSubcommands(ctx, called)
@@ -81,5 +82,5 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 	embed.Author = &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}
 	embed.Description = desc
 	embed.Description += "\n\nFloSelfbot [v" + version + "](https://github.com/Moonlington/FloSelfbot)"
-	ctx.Sess.ChannelMessageSendEmbed(ctx.Channel.ID, embed)
+	ctx.SendEm(embed)
 }

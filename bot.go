@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
-	"log"
 
 	"FloSelfbot/commands"
 
@@ -49,7 +49,7 @@ func createConfig() *commands.Config {
 	fmt.Print("\nInput your desired prefix here: ")
 	fmt.Scanln(&tempprefix)
 
-	tempconfig := &commands.Config{temptoken, tempprefix, false, "#000000", []string{}, 5, false}
+	tempconfig := &commands.Config{temptoken, tempprefix, false, "#000000", []string{}, 5, false, 0}
 	editConfigfile(tempconfig)
 
 	return tempconfig
@@ -75,6 +75,7 @@ func main() {
 
 	commandhandler.AddCommand("ping", &commands.Ping{})
 	commandhandler.AddCommand("setgame", &commands.SetGame{})
+	commandhandler.AddCommand("getgame", &commands.GetGame{})
 	commandhandler.AddCommand("me", &commands.Me{})
 	commandhandler.AddCommand("embed", &commands.Embed{})
 	commandhandler.AddCommand("eval", &commands.Eval{})
@@ -83,6 +84,7 @@ func main() {
 	commandhandler.AddCommand("afk", &commands.Afk{})
 	commandhandler.AddCommand("config", &commands.Configcommand{})
 	commandhandler.AddCommand("multigame", &commands.MultiGame{})
+	commandhandler.AddCommand("pin", &commands.Pin{})
 	// commandhandler.AddCommand("emote", &Emote{})
 
 	err = dg.Open()
@@ -171,7 +173,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// 	}
 	// }
 
-	if strings.HasPrefix(m.Content, conf.Prefix) {
+	if strings.HasPrefix(strings.ToLower(m.Content), conf.Prefix) {
 		// Setting values for the commands
 		var ctx *commands.Context
 		args := strings.Split(m.Content[len(conf.Prefix):len(m.Content)], " ")
