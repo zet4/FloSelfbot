@@ -11,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-const version string = "3.1-Alpho"
+const version string = "3.1"
 
 var currentgame string = ""
 
