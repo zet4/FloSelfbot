@@ -11,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-const version string = "3.1"
+const version string = "3.2"
 
 var currentgame string = ""
 
@@ -20,6 +20,7 @@ type Config struct {
 	Prefix            string
 	LogMode           bool
 	EmbedColor        string
+	AFKPlay           bool
 	MultiGameStrings  []string
 	MultiGameMinutes  int
 	MultigameToggled  bool
@@ -66,6 +67,12 @@ func (ctx *Context) SendEm(em *discordgo.MessageEmbed) (*discordgo.Message, erro
 		go WaitandDelete(ctx, m)
 	}
 	return m, err
+}
+
+func (ctx *Context) QuickSendEm(s string) (*discordgo.Message, error) {
+	em := createEmbed(ctx)
+	em.Description = s
+	return ctx.SendEm(em)
 }
 
 func (ctx *Context) SendEmNoDelete(em *discordgo.MessageEmbed) (*discordgo.Message, error) {

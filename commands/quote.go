@@ -27,8 +27,9 @@ func (q *Quote) Message(ctx *Context) {
 			}
 		}
 		if qmess == nil {
-			ctx.Sess.ChannelMessageSend(ctx.Mess.ChannelID, "Message not found")
-			return
+			em := createEmbed(ctx)
+			em.Description = "Message not found"
+			ctx.SendEm(em)
 		}
 		emauthor := &discordgo.MessageEmbedAuthor{Name: qmess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", qmess.Author.ID, qmess.Author.Avatar)}
 		timestamp, err := qmess.Timestamp.Parse()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -43,13 +44,13 @@ func createConfig() *commands.Config {
 		temptoken  string
 	)
 
-	fmt.Println("\nTo find your User Token. In browser or desktop Discord, type Ctrl-Shift-I. Go to the Console section, and type localStorage.token. Your user token will appear. Do not share this token with anyone! This token provides complete access to your Discord account, so never share it!")
+	fmt.Println("\n​​To find your user token (desktop app and browser):\n1. Type Ctrl-Shift-i\n2. Go to the Application page\n3. Under Storage, select Local Storage, and then discordapp.com\n4. Find the token row and copy the value that is in quotes.")
 	fmt.Print("\nInput your User Token here: ")
 	fmt.Scanln(&temptoken)
 	fmt.Print("\nInput your desired prefix here: ")
 	fmt.Scanln(&tempprefix)
 
-	tempconfig := &commands.Config{temptoken, tempprefix, false, "#000000", []string{}, 5, false, 0}
+	tempconfig := &commands.Config{temptoken, tempprefix, false, "#000000", true, []string{}, 5, false, 0}
 	editConfigfile(tempconfig)
 
 	return tempconfig
@@ -70,6 +71,15 @@ func main() {
 
 	logwarning(err)
 
+	_, err = dg.User("@me")
+
+	if err != nil {
+		fmt.Println("Something went wrong with logging in, check twice if your token is correct.")
+		fmt.Println("Press CTRL-C to exit.")
+		<-make(chan struct{})
+		return
+	}
+
 	dg.AddHandler(messageCreate)
 	commandhandler = &commands.CommandHandler{make(map[string]commands.Command)}
 
@@ -85,20 +95,21 @@ func main() {
 	commandhandler.AddCommand("config", &commands.Configcommand{})
 	commandhandler.AddCommand("multigame", &commands.MultiGame{})
 	commandhandler.AddCommand("pin", &commands.Pin{})
+	commandhandler.AddCommand("status", &commands.Status{})
 	// commandhandler.AddCommand("emote", &Emote{})
 
 	err = dg.Open()
 
 	logwarning(err)
 
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	fmt.Println("FloSelfbot is now running.")
 	fmt.Println("Type", conf.Prefix+"help", "to see all commands!")
 
 	if conf.MultigameToggled {
 		commands.Mgtoggle = true
 		go commands.MultiGameFunc(dg, conf)
 	}
-
+	fmt.Println("Press CTRL-C to exit.")
 	<-make(chan struct{})
 	return
 }
@@ -186,6 +197,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		} else {
 			guild, _ := s.State.Guild(channel.GuildID)
 			ctx = &commands.Context{conf, invoked, args, channel, guild, m, s}
+		}
+		p, err := s.UserChannelPermissions(s.State.User.ID, m.ChannelID)
+		if p&discordgo.PermissionEmbedLinks != discordgo.PermissionEmbedLinks {
+			s.ChannelMessageDelete(m.ChannelID, m.ID)
+			logerror(errors.New("THE BOT DOES NOT WORK IN SERVERS WHERE YOU DONT HAVE EMBEDLINKS PERMISSION"))
+			return
 		}
 
 		commandhandler.HandleCommands(ctx)

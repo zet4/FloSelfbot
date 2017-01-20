@@ -35,6 +35,11 @@ func (a *AddMultiGameString) Message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		em := createEmbed(ctx)
 		game := strings.Join(ctx.Args, " ")
+		if strings.ToLower(game) == "all" {
+			em.Description = fmt.Sprintf("**All** can not be added because of problems with the remove command.", game)
+			ctx.SendEm(em)
+			return
+		}
 		ctx.Conf.MultiGameStrings = append(ctx.Conf.MultiGameStrings, game)
 		editConfigfile(ctx.Conf)
 		em.Description = fmt.Sprintf("Added **%s** to Multigame", game)
@@ -60,6 +65,13 @@ func (r *RemoveMultiGameString) Message(ctx *Context) {
 		var pos int
 		em := createEmbed(ctx)
 		game := strings.Join(ctx.Args, " ")
+		if strings.ToLower(game) == "all" {
+			ctx.Conf.MultiGameStrings = []string{}
+			editConfigfile(ctx.Conf)
+			em.Description = "Removed everything from the list."
+			ctx.SendEm(em)
+			return
+		}
 		for i, v := range ctx.Conf.MultiGameStrings {
 			if game == v {
 				pos = i
@@ -85,20 +97,26 @@ func (r *RemoveMultiGameString) Message(ctx *Context) {
 }
 
 func (r *RemoveMultiGameString) Description() string { return "Removes a string from Multigame" }
-func (r *RemoveMultiGameString) Usage() string       { return "<game>" }
+func (r *RemoveMultiGameString) Usage() string       { return "<game|all>" }
 func (r *RemoveMultiGameString) Detailed() string {
-	return "Removes a string from Multigame."
+	return "Removes a string from Multigame. Type All as game to remove everything from the list"
 }
 func (a *RemoveMultiGameString) Subcommands() map[string]Command { return make(map[string]Command) }
 
 type MultiGameList struct{}
 
 func (l *MultiGameList) Message(ctx *Context) {
+	var desc string
 	em := createEmbed(ctx)
-	desc := "Current strings in Multigame:"
-	for _, v := range ctx.Conf.MultiGameStrings {
-		desc += fmt.Sprintf("\n`%s`", v)
+	if len(ctx.Conf.MultiGameStrings) == 0 {
+		desc = "There are currently no games in Multigame!"
+	} else {
+		desc = "Current strings in Multigame:"
+		for _, v := range ctx.Conf.MultiGameStrings {
+			desc += fmt.Sprintf("\n`%s`", v)
+		}
 	}
+	desc += fmt.Sprintf("\nCurrent timer is set to: **%s**", strconv.Itoa(ctx.Conf.MultiGameMinutes))
 	em.Description = desc
 	ctx.SendEm(em)
 }
