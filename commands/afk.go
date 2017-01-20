@@ -71,6 +71,7 @@ func (a *Afk) Message(ctx *Context) {
 			ctx.Conf.MultigameToggled = false
 		}
 		em.Description = "AFKMode is now on!"
+		ctx.Conf.MultigameToggled = false
 		ctx.SendEm(em)
 		ctx.Sess.UserUpdateStatus(discordgo.StatusDoNotDisturb)
 	}
