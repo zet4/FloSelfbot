@@ -12,7 +12,7 @@ func (m *Me) Message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		text := strings.Join(ctx.Args, " ")
 		em.Description = fmt.Sprintf("***%s*** *%s*", ctx.Mess.Author.Username, text)
-		ctx.SendEm(em)
+		ctx.SendEmNoDelete(em)
 	} else {
 		em.Description = fmt.Sprintf("***%s*** *was silent...*", ctx.Mess.Author.Username)
 		ctx.SendEmNoDelete(em)

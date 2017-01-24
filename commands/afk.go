@@ -46,6 +46,10 @@ func (a *Afk) Message(ctx *Context) {
 		AFKstring = ""
 		em.Description = "AFKMode is now off!"
 		ctx.Conf.MultigameToggled = AFKMultigameBefore
+		if ctx.Conf.AFKPlay {
+			ctx.Sess.UpdateStatus(0, "")
+			currentgame = ""
+		}
 		var emfields []*discordgo.MessageEmbedField
 		for _, msg := range AFKMessages {
 			field := &discordgo.MessageEmbedField{Inline: false, Name: msg.Author.Username + " in <#" + msg.ChannelID + ">", Value: msg.Content}
@@ -54,6 +58,7 @@ func (a *Afk) Message(ctx *Context) {
 		em.Fields = emfields
 		ctx.SendEm(em)
 		AFKMessages = []*discordgo.MessageCreate{}
+		ctx.Sess.UserUpdateStatus(discordgo.StatusOnline)
 	} else {
 		AFKMode = true
 		AFKstring = strings.Join(ctx.Args, " ")

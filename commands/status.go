@@ -18,7 +18,7 @@ func (s *Status) Message(ctx *Context) {
 	}
 }
 
-func (s *Status) Description() string             { return "Sets your status. (online|invisible|dnd|away)" }
-func (s *Status) Usage() string                   { return "<online|invisible|dnd|away>" }
-func (s *Status) Detailed() string                { return "Sets your status. (online|invisible|dnd|away)" }
+func (s *Status) Description() string             { return "Sets your status. (online|invisible|dnd|idle)" }
+func (s *Status) Usage() string                   { return "<online|invisible|dnd|idle>" }
+func (s *Status) Detailed() string                { return "Sets your status. (online|invisible|dnd|idle)" }
 func (s *Status) Subcommands() map[string]Command { return make(map[string]Command) }

@@ -74,7 +74,7 @@ func main() {
 	_, err = dg.User("@me")
 
 	if err != nil {
-		fmt.Println("Something went wrong with logging in, check twice if your token is correct.")
+		fmt.Println("Something went wrong with logging in, check twice if your token is correct.\nYou can do so by editing/deleting config.toml")
 		fmt.Println("Press CTRL-C to exit.")
 		<-make(chan struct{})
 		return
@@ -96,7 +96,6 @@ func main() {
 	commandhandler.AddCommand("multigame", &commands.MultiGame{})
 	commandhandler.AddCommand("pin", &commands.Pin{})
 	commandhandler.AddCommand("status", &commands.Status{})
-	// commandhandler.AddCommand("emote", &Emote{})
 
 	err = dg.Open()
 
@@ -171,19 +170,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// i1 := strings.Index(m.Content, ":")
-	// if i1 != -1 {
-	// 	i2 := strings.Index(m.Content[i1+1:], ":")
-	// 	if i2 != -1 {
-	// 		emote := m.Content[i1+1 : i2+1]
-	// 		exp, ok := conf.Emotes[emote]
-	// 		if ok {
-	// 			content := m.Content[:i1] + exp + m.Content[i2:]
-	// 			s.ChannelMessageSend(m.ChannelID, content)
-	// 		}
-	// 	}
-	// }
-
 	if strings.HasPrefix(strings.ToLower(m.Content), conf.Prefix) {
 		// Setting values for the commands
 		var ctx *commands.Context
@@ -199,10 +185,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			ctx = &commands.Context{conf, invoked, args, channel, guild, m, s}
 		}
 		p, err := s.UserChannelPermissions(s.State.User.ID, m.ChannelID)
-		if p&discordgo.PermissionEmbedLinks != discordgo.PermissionEmbedLinks {
-			s.ChannelMessageDelete(m.ChannelID, m.ID)
-			logerror(errors.New("THE BOT DOES NOT WORK IN SERVERS WHERE YOU DONT HAVE EMBEDLINKS PERMISSION"))
-			return
+		if channel.Recipient == nil {
+			if p&discordgo.PermissionEmbedLinks != discordgo.PermissionEmbedLinks {
+				s.ChannelMessageDelete(m.ChannelID, m.ID)
+				logerror(errors.New("THE BOT DOES NOT WORK IN SERVERS WHERE YOU DONT HAVE EMBEDLINKS PERMISSION"))
+				return
+			}
 		}
 
 		commandhandler.HandleCommands(ctx)
