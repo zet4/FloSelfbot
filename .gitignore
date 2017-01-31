@@ -4,5 +4,6 @@ logs/
 FloSelfbot
 *.sh
 *.bat
-*.rar
+*.zip
+*.tar
 version.txt

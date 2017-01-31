@@ -11,7 +11,7 @@ import (
 type Embed struct{}
 
 func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
-	output := em.Description
+	output := strings.Replace(strings.Replace(em.Description, `\\]`, "\u0014", -1), `\\[`, "\u0013", -1)
 	iterations := 0
 	var lastoutput string
 	var regexed []string
@@ -28,17 +28,17 @@ func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 			var toEval = output[i2+1 : i1]
 			if strings.HasPrefix(toEval, "author:") {
 				emex := &discordgo.MessageEmbedAuthor{}
-				regexed = regexp.MustCompile(`\[url:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[url:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.URL = regexed[1]
+					emex.URL = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
-				regexed = regexp.MustCompile(`\[iconurl:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[iconurl:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.IconURL = regexed[1]
+					emex.IconURL = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
-				regexed = regexp.MustCompile(`\[name:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[name:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.Name = regexed[1]
+					emex.Name = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
 				output = output[:i2] + output[i1+1:]
 				em.Author = emex
@@ -47,26 +47,26 @@ func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 				emex := &discordgo.MessageEmbedField{}
 				inline := regexp.MustCompile(`\[inline\]`).Match([]byte(toEval))
 				emex.Inline = inline
-				regexed = regexp.MustCompile(`\[text:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[text:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.Value = regexed[1]
+					emex.Value = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
-				regexed = regexp.MustCompile(`\[name:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[name:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.Name = regexed[1]
+					emex.Name = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
 				output = output[:i2] + output[i1+1:]
 				em.Fields = append(em.Fields, emex)
 
 			} else if strings.HasPrefix(toEval, "footer:") {
 				emex := &discordgo.MessageEmbedFooter{}
-				regexed = regexp.MustCompile(`\[iconurl:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[iconurl:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.IconURL = regexed[1]
+					emex.IconURL = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
-				regexed = regexp.MustCompile(`\[text:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[text:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.Text = regexed[1]
+					emex.Text = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
 				output = output[:i2] + output[i1+1:]
 				em.Footer = emex
@@ -79,13 +79,13 @@ func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 
 			} else if strings.HasPrefix(toEval, "provider:") {
 				emex := &discordgo.MessageEmbedProvider{}
-				regexed = regexp.MustCompile(`\[url:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[url:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.URL = regexed[1]
+					emex.URL = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
-				regexed = regexp.MustCompile(`\[name:(.*?)\]`).FindStringSubmatch(toEval)
+				regexed = regexp.MustCompile(`\[name:([\s\S]*?)\]`).FindStringSubmatch(toEval)
 				if regexed != nil {
-					emex.Name = regexed[1]
+					emex.Name = strings.Replace(strings.Replace(regexed[1], "\u0014", `]`, -1), "\u0013", `[`, -1)
 				}
 				output = output[:i2] + output[i1+1:]
 				em.Provider = emex
@@ -98,7 +98,7 @@ func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 			}
 		}
 	}
-	em.Description = strings.TrimSpace(lastoutput)
+	em.Description = strings.Replace(strings.Replace(strings.TrimSpace(lastoutput), "\u0014", `]`, -1), "\u0013", `[`, -1)
 	return em
 }
 func (e *Embed) Message(ctx *Context) {

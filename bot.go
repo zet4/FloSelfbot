@@ -173,7 +173,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(strings.ToLower(m.Content), conf.Prefix) {
 		// Setting values for the commands
 		var ctx *commands.Context
-		args := strings.Split(m.Content[len(conf.Prefix):len(m.Content)], " ")
+		args := strings.Fields(m.Content[len(conf.Prefix):len(m.Content)])
 		invoked := args[0]
 		args = args[1:]
 		channel, err := s.State.Channel(m.ChannelID)
@@ -188,7 +188,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if channel.Recipient == nil {
 			if p&discordgo.PermissionEmbedLinks != discordgo.PermissionEmbedLinks {
 				s.ChannelMessageDelete(m.ChannelID, m.ID)
-				logerror(errors.New("THE BOT DOES NOT WORK IN SERVERS WHERE YOU DONT HAVE EMBEDLINKS PERMISSION"))
+				logerror(errors.New("THE SELFBOT DOES NOT WORK IN CHANNELS WHERE YOU DONT HAVE EMBEDLINKS PERMISSION"))
 				return
 			}
 		}
