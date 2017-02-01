@@ -8,8 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"FloSelfbot/commands"
-
+	"github.com/Moonlington/FloSelfbot/commands"
 	"github.com/BurntSushi/toml"
 	"github.com/bwmarrin/discordgo"
 )

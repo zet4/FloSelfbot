@@ -5,5 +5,5 @@ FloSelfbot
 *.sh
 *.bat
 *.zip
-*.tar
+*.tgz
 version.txt
