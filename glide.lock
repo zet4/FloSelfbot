@@ -1,0 +1,29 @@
+hash: b59b5e90032365b7816cc419a482390a8e4a168e01dfefcc6c972de1d63d1181
+updated: 2017-02-01T15:18:36.727206364+01:00
+imports:
+- name: github.com/BurntSushi/toml
+  version: bbd5bb678321a0d6e58f1099321dfa73391c1b6f
+- name: github.com/bwmarrin/discordgo
+  version: b07d1c462128256cad11a699557ce73d75222dd8
+- name: github.com/gorilla/websocket
+  version: c36f2fe5c330f0ac404b616b96c438b8616b1aaf
+- name: github.com/robertkrimen/otto
+  version: 1c7376969459873387db43f2838ffab2aadf8010
+  subpackages:
+  - ast
+  - dbg
+  - file
+  - parser
+  - registry
+  - token
+- name: golang.org/x/crypto
+  version: dc137beb6cce2043eb6b5f223ab8bf51c32459f4
+  subpackages:
+  - nacl/secretbox
+  - poly1305
+  - salsa20/salsa
+- name: gopkg.in/sourcemap.v1
+  version: eef8f47ab679652a7d3a4ee34c34314d255d2536
+  subpackages:
+  - base64vlq
+testImports: []
