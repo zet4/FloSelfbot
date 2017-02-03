@@ -17,6 +17,9 @@ Current features
 ## Table of Contents
 
 -   [Install](#install)
+    -   [Release](#release)
+    -   [Building from source](#building-from-source)
+    -   [Update](#update)
 -   [Usage](#usage)
 -   [Contribute](#contribute)
 -   [License](#license)
@@ -28,12 +31,9 @@ Current features
 -   Download the latest version of the selfbot
 -   Extract
 
-We recommended to put it in a seperate folder
-(Don't worry, it makes friends fast.)
+We recommend to put the binary in a seperate folder (Don't worry, it makes friends fast).
 
-### OS X and Linux
-
-You might need to set the binary executable:
+On OS X and Linux, you might need to set the binary executable:
 
 ```
 chmod +x FloSelfbot_LINUX
