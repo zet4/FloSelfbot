@@ -5,7 +5,7 @@ Please check these guidelines before contributing go code to a repository.
 ## Requirements
 
 -   Run `go fmt` before pushing any code.
--   Run `golint` and `go vet` too -- some files may fail.
+-   Run `golint` and `go vet` too -- some code may fail.
 
 ## A Short Introduction
 
