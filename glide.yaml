@@ -1,4 +1,9 @@
-package: .
+package: github.com/Moonlington/FloSelfbot
+homepage: https://github.com/Moonlington/FloSelfbot/wiki
+license: MIT
+description: Floretta's selfbot anyone can use 
+owners:
+- name: Floretta
 import:
 - package: github.com/BurntSushi/toml
   version: ~0.2.0
