@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Moonlington/FloSelfbot/commands"
+
 	"github.com/BurntSushi/toml"
 	"github.com/bwmarrin/discordgo"
 )
@@ -93,7 +94,6 @@ func main() {
 	commandhandler.AddCommand("afk", &commands.Afk{})
 	commandhandler.AddCommand("config", &commands.Configcommand{})
 	commandhandler.AddCommand("multigame", &commands.MultiGame{})
-	commandhandler.AddCommand("pin", &commands.Pin{})
 	commandhandler.AddCommand("status", &commands.Status{})
 
 	err = dg.Open()
