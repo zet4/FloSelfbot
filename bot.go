@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/Moonlington/FloSelfbot/commands"
 
@@ -119,41 +118,12 @@ func main() {
 	return
 }
 
-func logmessage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if conf.LogMode {
-		var f *os.File
-		var channel *discordgo.Channel
-		var guildname string
-		var channelname string
-
-		channel, _ = s.State.Channel(m.ChannelID)
-		guild, err := s.State.Guild(channel.GuildID)
-		if err != nil {
-			guildname = "Direct Message"
-			channelname = channel.Recipient.Username
-		} else {
-			guildname = guild.Name
-			channelname = channel.Name
-		}
-
-		f, err = os.OpenFile(fmt.Sprintf("./logs/%s/%s.txt", guildname, channelname), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0777)
-		if os.IsNotExist(err) {
-			os.MkdirAll(fmt.Sprintf("./logs/%s", guildname), 0777)
-			f, _ = os.OpenFile(fmt.Sprintf("./logs/%s/%s.txt", guildname, channelname), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0777)
-		}
-		defer f.Close()
-
-		timestamp, err := m.Timestamp.Parse()
-		logerror(err)
-
-		timestampo := timestamp.Format(time.ANSIC)
-		f.Write([]byte(fmt.Sprintf("%s %s#%s (%s): %s\r\n", timestampo, m.Author.Username, m.Author.Discriminator, m.Author.ID, m.ContentWithMentionsReplaced())))
-	}
-}
-
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	logmessage(s, m)
+	if conf.LogMode {
+		timestamp, _ := m.Timestamp.Parse()
+		LogMessage(s, timestamp, m.Author, m.ID, m.ChannelID, "MSG", m.ContentWithMentionsReplaced())
+	}
 
 	if commands.AFKMode {
 		for _, u := range m.Mentions {
