@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -95,6 +96,12 @@ func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 				emex.URL = toEval[10:]
 				output = output[:i2] + output[i1+1:]
 				em.Thumbnail = emex
+			} else if strings.HasPrefix(toEval, "color:") {
+				color := toEval[6:]
+				colorint, err := strconv.Atoi(color)
+				logerror(err)
+				output = output[:i2] + output[i1+1:]
+				em.Color = colorint
 			}
 		}
 	}
