@@ -49,7 +49,7 @@ func createConfig() *commands.Config {
 	fmt.Print("\nInput your desired prefix here: ")
 	fmt.Scanln(&tempprefix)
 
-	tempconfig := &commands.Config{temptoken, tempprefix, false, "#000000", true, []string{}, 5, false, 0}
+	tempconfig := &commands.Config{Token: temptoken, Prefix: tempprefix}
 	editConfigfile(tempconfig)
 
 	return tempconfig
