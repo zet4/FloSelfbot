@@ -16,17 +16,18 @@ const version string = "3.4"
 var currentgame string = ""
 
 type Config struct {
-	Token             string
-	Prefix            string
-	LogMode           bool
-	LogModeMinBuffer  int
-	LogModeMaxBuffer  int
-	EmbedColor        string
-	AFKPlay           bool
-	MultiGameStrings  []string
-	MultiGameMinutes  int
-	MultigameToggled  bool
-	AutoDeleteSeconds int
+	Token              string
+	Prefix             string
+	LogMode            bool
+	LogModeMinBuffer   int
+	LogModeMaxBuffer   int
+	LogModeCompression bool
+	EmbedColor         string
+	AFKPlay            bool
+	MultiGameStrings   []string
+	MultiGameMinutes   int
+	MultigameToggled   bool
+	AutoDeleteSeconds  int
 }
 
 type Context struct {

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Moonlington/FloSelfbot/commands"
 
@@ -83,6 +84,11 @@ func main() {
 	}
 
 	dg.AddHandler(messageCreate)
+	dg.AddHandler(messageEdit)
+	dg.AddHandler(messageDelete)
+	dg.AddHandler(messageReactionAdd)
+	dg.AddHandler(messageReactionRemove)
+
 	commandhandler = &commands.CommandHandler{make(map[string]commands.Command)}
 
 	commandhandler.AddCommand("ping", &commands.Ping{})
@@ -122,11 +128,44 @@ func main() {
 	return
 }
 
+func messageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
+	if conf.LogMode {
+		timestamp := time.Now().UTC()
+		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+	}
+}
+
+func messageReactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
+	if conf.LogMode {
+		timestamp := time.Now().UTC()
+		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+	}
+}
+
+func messageEdit(s *discordgo.Session, m *discordgo.MessageUpdate) {
+	if conf.LogMode {
+		timestamp := time.Now().UTC()
+		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "EDI", m.ContentWithMentionsReplaced())
+	}
+}
+
+func messageDelete(s *discordgo.Session, m *discordgo.MessageDelete) {
+	if conf.LogMode {
+		timestamp := time.Now().UTC()
+		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "DEL", m.ContentWithMentionsReplaced())
+	}
+}
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if conf.LogMode {
 		timestamp, _ := m.Timestamp.Parse()
-		LogMessage(s, timestamp, m.Author, m.ID, m.ChannelID, "MSG", m.ContentWithMentionsReplaced())
+		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "MSG", m.ContentWithMentionsReplaced())
+		if len(m.Attachments) != 0 {
+			for _, a := range m.Attachments {
+				LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "ATT", a.URL)
+			}
+		}
 	}
 
 	if commands.AFKMode {
