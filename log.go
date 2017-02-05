@@ -12,39 +12,81 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var logbuffers map[string]map[string]bytes.Buffer = make(map[string]map[string]bytes.Buffer)
-var logmintime time.Time = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Minute)
-var logmaxtime time.Time = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Minute)
+var logbuffers map[string]map[string]*bytes.Buffer = make(map[string]map[string]*bytes.Buffer)
+var logmintime time.Time
+var logmaxtime time.Time
 
 func SendToBuffer(s *discordgo.Session, ChannelID, str string) {
 	var channel *discordgo.Channel
-	var guildname string
-	var channelname string
+	var gn string
+	var cn string
 
 	channel, _ = s.State.Channel(ChannelID)
 	guild, err := s.State.Guild(channel.GuildID)
+	if err != nil {
+		gn = "Direct Message"
+		cn = channel.Recipient.Username + "#" + channel.Recipient.Discriminator
+	} else {
+		gn = guild.ID
+		cn = channel.Name
+	}
 
 	now := time.Now()
 
-	logbuffer := logbuffers[guild.ID][ChannelID]
+	logbuffer, ok := logbuffers[gn][cn]
+
+	if !ok {
+		if _, kok := logbuffers[gn]; !kok {
+			logbuffers[gn] = make(map[string]*bytes.Buffer)
+		}
+		buf := new(bytes.Buffer)
+		logbuffers[gn][cn] = buf
+		logbuffer = buf
+	}
 
 	if now.Before(logmintime) {
 		logbuffer.WriteString(str)
 	} else {
-		var f *os.File
-
-		if err != nil {
-			guildname = "Direct Message"
-			channelname = channel.Recipient.Username
-			f, err = GetLogFile(guildname, "Direct Message", channelname)
-		} else {
-			guildname = guild.ID
-			channelname = channel.Name
-			f, err = GetLogFile(guildname, guild.Name, channelname)
-		}
 		logbuffer.WriteString(str)
-		logbuffer.WriteTo(f)
-		logbuffer.Reset()
+		if logbuffer.Len() >= logbuffer.Cap() {
+			f, err := GetLogFile(s, gn, cn)
+			logerror(err)
+			defer f.Close()
+			n, err := logbuffer.WriteTo(f)
+			logerror(err)
+			fmt.Println("Written", n, "bytes to", filepath.Join(filepath.Join("logs", gn, cn+".txt")))
+		}
+	}
+}
+
+func BufferLoop(s *discordgo.Session) {
+	if conf.LogModeMaxBuffer < 1 {
+		conf.LogModeMaxBuffer = 5
+		editConfigfile(conf)
+	}
+	if conf.LogModeMinBuffer < 1 {
+		conf.LogModeMinBuffer = 10
+		editConfigfile(conf)
+	}
+	logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Minute)
+	logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Minute)
+	for {
+		if time.Now().After(logmaxtime) {
+			tn := 0
+			for k, v := range logbuffers {
+				for c, buf := range v {
+					f, err := GetLogFile(s, k, c)
+					logerror(err)
+					defer f.Close()
+					n, err := buf.WriteTo(f)
+					logerror(err)
+					tn += int(n)
+				}
+			}
+			fmt.Println("Flushed buffers, written ", tn, "bytes")
+			logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Minute)
+			logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Minute)
+		}
 	}
 }
 
@@ -69,20 +111,23 @@ func LogMessage(s *discordgo.Session, timestamp time.Time, user *discordgo.User,
 	SendToBuffer(s, cID, strings.Replace(fmt.Sprintf("%s %s %s %s ## %s ## %s", mID, timestampo, user.ID, code, namestr, message), "\n", "\t", -1)+"\n")
 }
 
-func GetLogFile(g, gn, c string) (*os.File, error) {
+func GetLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	os.MkdirAll(filepath.Join("logs", g), os.ModePerm)
+	if g != "Direct Message" {
+		_, err := os.Stat(filepath.Join("logs", g, "servername.txt"))
+		if os.IsNotExist(err) {
+			guild, err := s.State.Guild(g)
+			f, err := os.Create(filepath.Join("logs", g, "servername.txt"))
+			logerror(err)
+			defer f.Close()
 
-	_, err := os.Stat(filepath.Join("logs", g, "servername.txt"))
-	if os.IsNotExist(err) {
-		f, err := os.Create(filepath.Join("logs", g, "servername.txt"))
-		logerror(err)
-		defer f.Close()
-		f.WriteString(gn)
+			f.WriteString(guild.Name)
+		}
 	}
 	re := regexp.MustCompile(`[\\/:\?!\*"<>\|]`)
 	c = re.ReplaceAllString(c, "")
 	path := filepath.Join("logs", g, c+".txt")
-	_, err = os.Stat(path)
+	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return os.Create(path)
 	}

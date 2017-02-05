@@ -65,6 +65,7 @@ func main() {
 		fmt.Println("No config file found, so let's make one!")
 		conf = createConfig()
 	}
+	editConfigfile(conf)
 
 	editConfigfile(conf)
 
@@ -113,6 +114,9 @@ func main() {
 		commands.Mgtoggle = true
 		go commands.MultiGameFunc(dg, conf)
 	}
+
+	go BufferLoop(dg)
+
 	fmt.Println("Press CTRL-C to exit.")
 	<-make(chan struct{})
 	return
