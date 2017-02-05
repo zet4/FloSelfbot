@@ -66,6 +66,7 @@ func main() {
 		fmt.Println("No config file found, so let's make one!")
 		conf = createConfig()
 	}
+	editConfigfile(conf)
 
 	editConfigfile(conf)
 
@@ -83,6 +84,11 @@ func main() {
 	}
 
 	dg.AddHandler(messageCreate)
+	dg.AddHandler(messageEdit)
+	dg.AddHandler(messageDelete)
+	dg.AddHandler(messageReactionAdd)
+	dg.AddHandler(messageReactionRemove)
+
 	commandhandler = &commands.CommandHandler{make(map[string]commands.Command)}
 
 	commandhandler.AddCommand("ping", &commands.Ping{})
@@ -114,46 +120,53 @@ func main() {
 		commands.Mgtoggle = true
 		go commands.MultiGameFunc(dg, conf)
 	}
+
+	go BufferLoop(dg)
+
 	fmt.Println("Press CTRL-C to exit.")
 	<-make(chan struct{})
 	return
 }
 
-func logmessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+func messageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 	if conf.LogMode {
-		var f *os.File
-		var channel *discordgo.Channel
-		var guildname string
-		var channelname string
+		timestamp := time.Now().UTC()
+		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+	}
+}
 
-		channel, _ = s.State.Channel(m.ChannelID)
-		guild, err := s.State.Guild(channel.GuildID)
-		if err != nil {
-			guildname = "Direct Message"
-			channelname = channel.Recipient.Username
-		} else {
-			guildname = guild.Name
-			channelname = channel.Name
-		}
+func messageReactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
+	if conf.LogMode {
+		timestamp := time.Now().UTC()
+		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+	}
+}
 
-		f, err = os.OpenFile(fmt.Sprintf("./logs/%s/%s.txt", guildname, channelname), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0777)
-		if os.IsNotExist(err) {
-			os.MkdirAll(fmt.Sprintf("./logs/%s", guildname), 0777)
-			f, _ = os.OpenFile(fmt.Sprintf("./logs/%s/%s.txt", guildname, channelname), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0777)
-		}
-		defer f.Close()
+func messageEdit(s *discordgo.Session, m *discordgo.MessageUpdate) {
+	if conf.LogMode {
+		timestamp := time.Now().UTC()
+		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "EDI", m.ContentWithMentionsReplaced())
+	}
+}
 
-		timestamp, err := m.Timestamp.Parse()
-		logerror(err)
-
-		timestampo := timestamp.Format(time.ANSIC)
-		f.Write([]byte(fmt.Sprintf("%s %s#%s (%s): %s\r\n", timestampo, m.Author.Username, m.Author.Discriminator, m.Author.ID, m.ContentWithMentionsReplaced())))
+func messageDelete(s *discordgo.Session, m *discordgo.MessageDelete) {
+	if conf.LogMode {
+		timestamp := time.Now().UTC()
+		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "DEL", m.ContentWithMentionsReplaced())
 	}
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	logmessage(s, m)
+	if conf.LogMode {
+		timestamp, _ := m.Timestamp.Parse()
+		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "MSG", m.ContentWithMentionsReplaced())
+		if len(m.Attachments) != 0 {
+			for _, a := range m.Attachments {
+				LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "ATT", a.URL)
+			}
+		}
+	}
 
 	if commands.AFKMode {
 		for _, u := range m.Mentions {
