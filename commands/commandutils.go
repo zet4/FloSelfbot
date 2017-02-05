@@ -19,8 +19,8 @@ type Config struct {
 	Token              string
 	Prefix             string
 	LogMode            bool
-	LogModeMaxBuffer   int
 	LogModeMinBuffer   int
+	LogModeMaxBuffer   int
 	LogModeCompression bool
 	EmbedColor         string
 	AFKPlay            bool
