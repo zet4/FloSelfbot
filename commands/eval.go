@@ -26,7 +26,7 @@ func (e *Eval) Message(ctx *Context) {
 		ctx.SendEm(em)
 	} else {
 		em := createEmbed(ctx)
-		em.Description = "You didn't eval shit"
+		em.Description = "You didn't eval anything"
 		ctx.SendEm(em)
 	}
 }
@@ -34,6 +34,6 @@ func (e *Eval) Message(ctx *Context) {
 func (e *Eval) Description() string { return "Evaluates using Otto (Advanced stuff, don't bother)" }
 func (e *Eval) Usage() string       { return "<toEval>" }
 func (e *Eval) Detailed() string {
-	return "I'm serious, don't bother with this command."
+	return "Evaluates using Otto (Advanced stuff, don't bother)\nIf you do want to bother, the `ctx` variable is something you can use."
 }
 func (e *Eval) Subcommands() map[string]Command { return make(map[string]Command) }
