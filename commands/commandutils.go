@@ -19,8 +19,8 @@ type Config struct {
 	Token              string
 	Prefix             string
 	LogMode            bool
-	LogModeMinBuffer   int
 	LogModeMaxBuffer   int
+	LogModeMinBuffer   int
 	LogModeCompression bool
 	EmbedColor         string
 	AFKPlay            bool
@@ -28,6 +28,7 @@ type Config struct {
 	MultiGameMinutes   int
 	MultigameToggled   bool
 	AutoDeleteSeconds  int
+	SketchyMode        bool
 }
 
 type Context struct {
