@@ -50,7 +50,7 @@ func createConfig() *commands.Config {
 	fmt.Print("\nInput your desired prefix here: ")
 	fmt.Scanln(&tempprefix)
 
-	tempconfig := &commands.Config{temptoken, tempprefix, false, "#000000", true, []string{}, 5, false, 0}
+	tempconfig := &commands.Config{Token: temptoken, Prefix: tempprefix}
 	editConfigfile(tempconfig)
 
 	return tempconfig
@@ -66,6 +66,8 @@ func main() {
 		fmt.Println("No config file found, so let's make one!")
 		conf = createConfig()
 	}
+
+	editConfigfile(conf)
 
 	dg, err := discordgo.New(conf.Token)
 
@@ -91,15 +93,20 @@ func main() {
 	commandhandler.AddCommand("eval", &commands.Eval{})
 	commandhandler.AddCommand("clean", &commands.Clean{})
 	commandhandler.AddCommand("quote", &commands.Quote{})
-	commandhandler.AddCommand("afk", &commands.Afk{})
 	commandhandler.AddCommand("config", &commands.Configcommand{})
 	commandhandler.AddCommand("multigame", &commands.MultiGame{})
 	commandhandler.AddCommand("status", &commands.Status{})
+	if conf.SketchyMode {
+		commandhandler.AddCommand("afk", &commands.Afk{})
+	}
 
 	err = dg.Open()
 
 	logwarning(err)
 
+	if conf.SketchyMode {
+		fmt.Println("You have turned on sketchy mode, this enables a few more features of the selfbot.\nBUT be aware that these features can get your account banned! Be careful or turn sketchy mode off.")
+	}
 	fmt.Println("FloSelfbot is now running.")
 	fmt.Println("Type", conf.Prefix+"help", "to see all commands!")
 
