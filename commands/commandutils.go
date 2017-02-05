@@ -11,20 +11,24 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-const version string = "3.3.5"
+const version string = "3.4"
 
 var currentgame string = ""
 
 type Config struct {
-	Token             string
-	Prefix            string
-	LogMode           bool
-	EmbedColor        string
-	AFKPlay           bool
-	MultiGameStrings  []string
-	MultiGameMinutes  int
-	MultigameToggled  bool
-	AutoDeleteSeconds int
+	Token              string
+	Prefix             string
+	LogMode            bool
+	LogModeMaxBuffer   int
+	LogModeMinBuffer   int
+	LogModeCompression bool
+	EmbedColor         string
+	AFKPlay            bool
+	MultiGameStrings   []string
+	MultiGameMinutes   int
+	MultigameToggled   bool
+	AutoDeleteSeconds  int
+	SketchyMode        bool
 }
 
 type Context struct {
