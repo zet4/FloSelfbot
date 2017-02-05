@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	BufferMin int = 4000
-	BufferMax int = 64000
+	BufferMin int = 4096
+	BufferMax int = 65536
 )
 
 var logbuffers map[string]map[string]*bytes.Buffer = make(map[string]map[string]*bytes.Buffer)
@@ -138,10 +138,10 @@ func LogMessageNoAuthor(s *discordgo.Session, timestamp time.Time, uID, mID, cID
 func GetLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	os.MkdirAll(filepath.Join("logs", g), os.ModePerm)
 	if g != "Direct Message" {
-		_, err := os.Stat(filepath.Join("logs", g, "servername.txt"))
+		_, err := os.Stat(filepath.Join("logs", g, "_servername.txt"))
 		if os.IsNotExist(err) {
 			guild, err := s.State.Guild(g)
-			f, err := os.Create(filepath.Join("logs", g, "servername.txt"))
+			f, err := os.Create(filepath.Join("logs", g, "_servername.txt"))
 			logerror(err)
 			defer f.Close()
 
