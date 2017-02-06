@@ -9,9 +9,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// Embed struct handles Embed Command
 type Embed struct{}
 
-func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
+func (e *Embed) parseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 	output := strings.Replace(strings.Replace(em.Description, `\\]`, "\u0014", -1), `\\[`, "\u0013", -1)
 	iterations := 0
 	var lastoutput string
@@ -108,19 +109,19 @@ func (e *Embed) ParseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 	em.Description = strings.Replace(strings.Replace(strings.TrimSpace(lastoutput), "\u0014", `]`, -1), "\u0013", `[`, -1)
 	return em
 }
-func (e *Embed) Message(ctx *Context) {
+func (e *Embed) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) != 0 {
 		text := strings.Join(ctx.Args, " ")
 		em.Description = text
-		ctx.SendEmNoDelete(e.ParseEmbed(em))
+		ctx.SendEmNoDelete(e.parseEmbed(em))
 	} else {
 		em.Description = fmt.Sprintf("***%s*** *was silent...*", ctx.Mess.Author.Username)
 		ctx.SendEmNoDelete(em)
 	}
 }
 
-func (e *Embed) Description() string             { return "Embeds stuff" }
-func (e *Embed) Usage() string                   { return "<message>" }
-func (e *Embed) Detailed() string                { return "Embeds stuff." }
-func (e *Embed) Subcommands() map[string]Command { return make(map[string]Command) }
+func (e *Embed) description() string             { return "Embeds stuff" }
+func (e *Embed) usage() string                   { return "<message>" }
+func (e *Embed) detailed() string                { return "Embeds stuff." }
+func (e *Embed) subcommands() map[string]Command { return make(map[string]Command) }
