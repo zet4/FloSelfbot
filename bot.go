@@ -138,7 +138,7 @@ func messageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 func messageReactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
 	if conf.LogMode {
 		timestamp := time.Now().UTC()
-		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "RED", m.Emoji.Name, m.Emoji.APIName())
 	}
 }
 
