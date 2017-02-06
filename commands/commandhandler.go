@@ -8,37 +8,44 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// A Command interface stores functions for commands
 type Command interface {
-	Message(*Context)
-	Description() string
-	Usage() string
-	Detailed() string
-	Subcommands() map[string]Command
+	message(*Context)
+	description() string
+	usage() string
+	detailed() string
+	subcommands() map[string]Command
 }
 
+// A CommandHandler handles Commands
 type CommandHandler struct {
 	Commands map[string]Command
 }
 
+// AddCommand adds a Command to the CommandHandler
+// n: Name for the Command
+// c: Command to add
 func (ch *CommandHandler) AddCommand(n string, c Command) {
 	ch.Commands[n] = c
 }
 
+// HandleSubcommands returns the Context and Command that is being called
+// ctx: Context used
+// called: Command called
 func HandleSubcommands(ctx *Context, called Command) (*Context, Command) {
 	if len(ctx.Args) != 0 {
-		scalled, sok := called.Subcommands()[strings.ToLower(ctx.Args[0])]
+		scalled, sok := called.subcommands()[strings.ToLower(ctx.Args[0])]
 		if sok {
 			ctx.Invoked += " " + ctx.Args[0]
 			ctx.Args = ctx.Args[1:]
 			return HandleSubcommands(ctx, scalled)
-		} else {
-			return ctx, called
 		}
-	} else {
-		return ctx, called
 	}
+	return ctx, called
 }
 
+// HandleCommands handles the Context and calls Command
+// ctx: Context used
 func (ch *CommandHandler) HandleCommands(ctx *Context) {
 	if strings.ToLower(ctx.Invoked) == "help" {
 		ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
@@ -48,13 +55,15 @@ func (ch *CommandHandler) HandleCommands(ctx *Context) {
 		if ok {
 			ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
 			rctx, rcalled := HandleSubcommands(ctx, called)
-			rcalled.Message(rctx)
+			rcalled.message(rctx)
 		} else {
 			logerror(errors.New(`Command "` + ctx.Invoked + `" not found`))
 		}
 	}
 }
 
+// HelpFunction handles the Help command for the CommandHandler
+// ctx: Context used
 func (ch *CommandHandler) HelpFunction(ctx *Context) {
 	embed := createEmbed(ctx)
 	var desc string
@@ -65,10 +74,10 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 		ctx.Args = ctx.Args[1:]
 		if ok {
 			sctx, scalled := HandleSubcommands(ctx, called)
-			desc = fmt.Sprintf("`%s%s %s`\n%s\nSubcommands:", ctx.Conf.Prefix, command+sctx.Invoked, scalled.Usage(), scalled.Detailed())
+			desc = fmt.Sprintf("`%s%s %s`\n%s\nSubcommands:", ctx.Conf.Prefix, command+sctx.Invoked, scalled.usage(), scalled.detailed())
 			desc += fmt.Sprintf(" `%shelp %s [subcommand]` for more info!", ctx.Conf.Prefix, command+sctx.Invoked)
-			for k, v := range scalled.Subcommands() {
-				desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, v.Description())
+			for k, v := range scalled.subcommands() {
+				desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, v.description())
 			}
 		} else {
 			desc = "No command called `" + command + "` found!"
@@ -77,7 +86,7 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 		desc = "Commands:"
 		desc += fmt.Sprintf(" `%shelp [command]` for more info!", ctx.Conf.Prefix)
 		for k, v := range ch.Commands {
-			desc += fmt.Sprintf("\n`%s%s` - %s", ctx.Conf.Prefix, k, v.Description())
+			desc += fmt.Sprintf("\n`%s%s` - %s", ctx.Conf.Prefix, k, v.description())
 		}
 	}
 	embed.Author = &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}

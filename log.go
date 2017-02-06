@@ -14,15 +14,15 @@ import (
 )
 
 const (
-	BufferMin int = 4096
-	BufferMax int = 65536
+	bufferMin int = 4096
+	bufferMax int = 65536
 )
 
-var logbuffers = make(map[string]map[string]*bytes.Buffer)
+var logbuffers map[string]map[string]*bytes.Buffer
 var logmintime time.Time
 var logmaxtime time.Time
 
-func SendToBuffer(s *discordgo.Session, ChannelID, str string) {
+func sendToBuffer(s *discordgo.Session, ChannelID, str string) {
 	var channel *discordgo.Channel
 	var gn string
 	var cn string
@@ -47,7 +47,7 @@ func SendToBuffer(s *discordgo.Session, ChannelID, str string) {
 		}
 		buf := new(bytes.Buffer)
 		logbuffers[gn][cn] = buf
-		buf.Grow(BufferMin)
+		buf.Grow(bufferMin)
 		logbuffer = buf
 	}
 
@@ -56,49 +56,65 @@ func SendToBuffer(s *discordgo.Session, ChannelID, str string) {
 	} else {
 		logbuffer.WriteString(str)
 		if logbuffer.Len() >= logbuffer.Cap()-2200 {
-			f, err := GetLogFile(s, gn, cn)
+			f, err := getLogFile(s, gn, cn)
+			defer f.Close()
 			logerror(err)
 			if conf.LogModeCompression {
-				w, err := gzip.NewWriterLevel(f, gzip.BestCompression)
-				logerror(err)
+				// var s []byte
+				// if fi, _ := f.Stat(); fi.Size() > 0 {
+				// 	fz, err := gzip.NewReader(f)
+				// 	logerror(err)
+				// 	s, err = ioutil.ReadAll(fz)
+				// 	logerror(err)
+				// 	fz.Close()
+				// }
+				w := gzip.NewWriter(f)
+				// w.Write(append(s, logbuffer.Bytes()...))
 				logbuffer.WriteTo(w)
 				w.Close()
 			} else {
 				logbuffer.WriteTo(f)
 			}
-
 			f.Close()
 		}
 	}
 }
 
-func BufferLoop(s *discordgo.Session) {
-	if conf.LogModeMaxBuffer < 1 {
-		conf.LogModeMaxBuffer = 1
-		editConfigfile(conf)
-	}
+func bufferLoop(s *discordgo.Session) {
 	if conf.LogModeMinBuffer < 1 {
 		conf.LogModeMinBuffer = 5
 		editConfigfile(conf)
 	}
-	logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Second)
+	if conf.LogModeMaxBuffer < 1 {
+		conf.LogModeMaxBuffer = 1
+		editConfigfile(conf)
+	}
 	logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Second)
+	logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Second)
 	for {
 		if time.Now().After(logmaxtime) {
 			for k, v := range logbuffers {
-				for c, buf := range v {
-					if buf.Len() == 0 {
+				for c, logbuffer := range v {
+					if logbuffer.Len() == 0 {
 						continue
 					}
-					f, err := GetLogFile(s, k, c)
+					f, err := getLogFile(s, k, c)
 					logerror(err)
 					if conf.LogModeCompression {
-						w, err := gzip.NewWriterLevel(f, gzip.BestCompression)
-						logerror(err)
-						buf.WriteTo(w)
+						// var s []byte
+						// if fi, _ := f.Stat(); fi.Size() > 0 {
+						// 	fz, err := gzip.NewReader(f)
+						// 	logerror(err)
+						// 	s, err = ioutil.ReadAll(fz)
+						// 	logerror(err)
+						// 	fz.Close()
+						// }
+						w := gzip.NewWriter(f)
+						// w.Write(append(s, logbuffer.Bytes()...))
+						logbuffer.WriteTo(w)
 						w.Close()
 					} else {
-						buf.WriteTo(f)
+						logbuffer.WriteTo(f)
 					}
 					f.Close()
 				}
@@ -109,7 +125,7 @@ func BufferLoop(s *discordgo.Session) {
 	}
 }
 
-func LogMessage(s *discordgo.Session, timestamp time.Time, user *discordgo.User, mID, cID, code, message string) {
+func logMessage(s *discordgo.Session, timestamp time.Time, user *discordgo.User, mID, cID, code, message string) {
 
 	timestampo := timestamp.Format("2006-01-02 15:04:05") + " UTC"
 	if user != nil {
@@ -126,19 +142,19 @@ func LogMessage(s *discordgo.Session, timestamp time.Time, user *discordgo.User,
 			}
 		}
 
-		SendToBuffer(s, cID, strings.Replace(fmt.Sprintf("%s %s %s %s ## %s ## %s", mID, timestampo, user.ID, code, namestr, message), "\n", "\t", -1)+"\n")
+		sendToBuffer(s, cID, strings.Replace(fmt.Sprintf("%s %s %s %s ## %s ## %s", mID, timestampo, user.ID, code, namestr, message), "\n", "\t", -1)+"\n")
 	} else {
-		SendToBuffer(s, cID, strings.Replace(fmt.Sprintf("%s %s %s ## ## %s", mID, timestampo, code, message), "\n", "\t", -1)+"\n")
+		sendToBuffer(s, cID, strings.Replace(fmt.Sprintf("%s %s %s ## ## %s", mID, timestampo, code, message), "\n", "\t", -1)+"\n")
 	}
 }
 
-func LogMessageNoAuthor(s *discordgo.Session, timestamp time.Time, uID, mID, cID, code, userfield, message string) {
+func logMessageNoAuthor(s *discordgo.Session, timestamp time.Time, uID, mID, cID, code, userfield, message string) {
 	timestampo := timestamp.Format("2006-01-02 15:04:05") + " UTC"
 
-	SendToBuffer(s, cID, strings.Replace(fmt.Sprintf("%s %s %s %s ## %s ## %s", mID, timestampo, uID, code, userfield, message), "\n", "\t", -1)+"\n")
+	sendToBuffer(s, cID, strings.Replace(fmt.Sprintf("%s %s %s %s ## %s ## %s", mID, timestampo, uID, code, userfield, message), "\n", "\t", -1)+"\n")
 }
 
-func GetLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
+func getLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	os.MkdirAll(filepath.Join("logs", g), os.ModePerm)
 	if g != "Direct Message" {
 		_, err := os.Stat(filepath.Join("logs", g, "_servername.txt"))
@@ -161,5 +177,5 @@ func GetLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	if os.IsNotExist(err) {
 		return os.Create(path)
 	}
-	return os.OpenFile(path, os.O_APPEND, os.ModePerm)
+	return os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 }

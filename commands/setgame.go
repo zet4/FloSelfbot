@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
+// SetGame struct handles SetGame Command
 type SetGame struct{}
 
-func (sg *SetGame) Message(ctx *Context) {
+func (sg *SetGame) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		em := createEmbed(ctx)
 		game := strings.Join(ctx.Args, " ")
@@ -22,9 +23,9 @@ func (sg *SetGame) Message(ctx *Context) {
 	}
 }
 
-func (sg *SetGame) Description() string { return "Sets your game to anything you like" }
-func (sg *SetGame) Usage() string       { return "<game>" }
-func (sg *SetGame) Detailed() string {
+func (sg *SetGame) description() string { return "Sets your game to anything you like" }
+func (sg *SetGame) usage() string       { return "<game>" }
+func (sg *SetGame) detailed() string {
 	return "Changes your 'Playing' status on discord (Because of discord you cant see the change yourself.)"
 }
-func (sg *SetGame) Subcommands() map[string]Command { return make(map[string]Command) }
+func (sg *SetGame) subcommands() map[string]Command { return make(map[string]Command) }

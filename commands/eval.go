@@ -7,9 +7,10 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
+// Eval struct handles Eval Command
 type Eval struct{}
 
-func (e *Eval) Message(ctx *Context) {
+func (e *Eval) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		vm := otto.New()
 		vm.Set("ctx", ctx)
@@ -31,9 +32,9 @@ func (e *Eval) Message(ctx *Context) {
 	}
 }
 
-func (e *Eval) Description() string { return "Evaluates using Otto (Advanced stuff, don't bother)" }
-func (e *Eval) Usage() string       { return "<toEval>" }
-func (e *Eval) Detailed() string {
+func (e *Eval) description() string { return "Evaluates using Otto (Advanced stuff, don't bother)" }
+func (e *Eval) usage() string       { return "<toEval>" }
+func (e *Eval) detailed() string {
 	return "Evaluates using Otto (Advanced stuff, don't bother)\nIf you do want to bother, the `ctx` variable is something you can use."
 }
-func (e *Eval) Subcommands() map[string]Command { return make(map[string]Command) }
+func (e *Eval) subcommands() map[string]Command { return make(map[string]Command) }
