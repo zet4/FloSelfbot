@@ -57,7 +57,6 @@ func sendToBuffer(s *discordgo.Session, ChannelID, str string) {
 		logbuffer.WriteString(str)
 		if logbuffer.Len() >= logbuffer.Cap()-2200 {
 			f, err := getLogFile(s, gn, cn)
-			defer f.Close()
 			logerror(err)
 			if conf.LogModeCompression {
 				// var s []byte
@@ -82,46 +81,46 @@ func sendToBuffer(s *discordgo.Session, ChannelID, str string) {
 
 func bufferLoop(s *discordgo.Session) {
 	if conf.LogModeMinBuffer < 1 {
-		conf.LogModeMinBuffer = 5
-		editConfigfile(conf)
+		conf.LogModeMinBuffer = 1
+		EditConfigfile(conf)
 	}
 	if conf.LogModeMaxBuffer < 1 {
-		conf.LogModeMaxBuffer = 1
-		editConfigfile(conf)
+		conf.LogModeMaxBuffer = 5
+		EditConfigfile(conf)
 	}
 	logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Second)
 	logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Second)
 	for {
-		if time.Now().After(logmaxtime) {
-			for k, v := range logbuffers {
-				for c, logbuffer := range v {
-					if logbuffer.Len() == 0 {
-						continue
-					}
-					f, err := getLogFile(s, k, c)
-					logerror(err)
-					if conf.LogModeCompression {
-						// var s []byte
-						// if fi, _ := f.Stat(); fi.Size() > 0 {
-						// 	fz, err := gzip.NewReader(f)
-						// 	logerror(err)
-						// 	s, err = ioutil.ReadAll(fz)
-						// 	logerror(err)
-						// 	fz.Close()
-						// }
-						w := gzip.NewWriter(f)
-						// w.Write(append(s, logbuffer.Bytes()...))
-						logbuffer.WriteTo(w)
-						w.Close()
-					} else {
-						logbuffer.WriteTo(f)
-					}
-					f.Close()
+		timer := time.NewTimer(time.Second * time.Duration(conf.LogModeMaxBuffer))
+		<-timer.C
+		for k, v := range logbuffers {
+			for c, logbuffer := range v {
+				if logbuffer.Len() == 0 {
+					continue
 				}
+				f, err := getLogFile(s, k, c)
+				logerror(err)
+				if conf.LogModeCompression {
+					// var s []byte
+					// if fi, _ := f.Stat(); fi.Size() > 0 {
+					// 	fz, err := gzip.NewReader(f)
+					// 	logerror(err)
+					// 	s, err = ioutil.ReadAll(fz)
+					// 	logerror(err)
+					// 	fz.Close()
+					// }
+					w := gzip.NewWriter(f)
+					// w.Write(append(s, logbuffer.Bytes()...))
+					logbuffer.WriteTo(w)
+					w.Close()
+				} else {
+					logbuffer.WriteTo(f)
+				}
+				f.Close()
 			}
-			logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Second)
-			logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Second)
 		}
+		logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Second)
+		logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Second)
 	}
 }
 
@@ -159,7 +158,7 @@ func getLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	if g != "Direct Message" {
 		_, err := os.Stat(filepath.Join("logs", g, "_servername.txt"))
 		if os.IsNotExist(err) {
-			guild, err := s.State.Guild(g)
+			guild, _ := s.State.Guild(g)
 			f, err := os.Create(filepath.Join("logs", g, "_servername.txt"))
 			logerror(err)
 			defer f.Close()
@@ -177,5 +176,5 @@ func getLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	if os.IsNotExist(err) {
 		return os.Create(path)
 	}
-	return os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	return os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 }
