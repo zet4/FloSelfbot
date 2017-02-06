@@ -2,9 +2,10 @@ package commands
 
 import "github.com/bwmarrin/discordgo"
 
+// Status struct handles Status Command
 type Status struct{}
 
-func (s *Status) Message(ctx *Context) {
+func (s *Status) message(ctx *Context) {
 	if len(ctx.Args) >= 1 {
 		_, err := ctx.Sess.UserUpdateStatus(discordgo.Status(ctx.Args[0]))
 		if err != nil {
@@ -18,7 +19,7 @@ func (s *Status) Message(ctx *Context) {
 	}
 }
 
-func (s *Status) Description() string             { return "Sets your status. (online|invisible|dnd|idle)" }
-func (s *Status) Usage() string                   { return "<online|invisible|dnd|idle>" }
-func (s *Status) Detailed() string                { return "Sets your status. (online|invisible|dnd|idle)" }
-func (s *Status) Subcommands() map[string]Command { return make(map[string]Command) }
+func (s *Status) description() string             { return "Sets your status. (online|invisible|dnd|idle)" }
+func (s *Status) usage() string                   { return "<online|invisible|dnd|idle>" }
+func (s *Status) detailed() string                { return "Sets your status. (online|invisible|dnd|idle)" }
+func (s *Status) subcommands() map[string]Command { return make(map[string]Command) }

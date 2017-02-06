@@ -2,9 +2,10 @@ package commands
 
 import "strconv"
 
+// Clean struct handles Clean Command
 type Clean struct{}
 
-func (c *Clean) Message(ctx *Context) {
+func (c *Clean) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		limit, err := strconv.Atoi(ctx.Args[0])
 		logerror(err)
@@ -23,9 +24,9 @@ func (c *Clean) Message(ctx *Context) {
 	}
 }
 
-func (c *Clean) Description() string { return "Cleans up your messages" }
-func (c *Clean) Usage() string       { return "<amount>" }
-func (c *Clean) Detailed() string {
+func (c *Clean) description() string { return "Cleans up your messages" }
+func (c *Clean) usage() string       { return "<amount>" }
+func (c *Clean) detailed() string {
 	return "If you realise you have been spamming a little, this is the command to use then."
 }
-func (c *Clean) Subcommands() map[string]Command { return make(map[string]Command) }
+func (c *Clean) subcommands() map[string]Command { return make(map[string]Command) }

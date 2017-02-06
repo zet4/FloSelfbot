@@ -5,9 +5,10 @@ import (
 	"time"
 )
 
+// Ping struct handles Ping Command
 type Ping struct{}
 
-func (p *Ping) Message(ctx *Context) {
+func (p *Ping) message(ctx *Context) {
 	em := createEmbed(ctx)
 	em.Description = "Pong!"
 	start := time.Now()
@@ -17,7 +18,7 @@ func (p *Ping) Message(ctx *Context) {
 	ctx.Sess.ChannelMessageEditEmbed(ctx.Mess.ChannelID, msg.ID, em)
 }
 
-func (p *Ping) Description() string             { return "Measures latency" }
-func (p *Ping) Usage() string                   { return "" }
-func (p *Ping) Detailed() string                { return "Measures latency" }
-func (p *Ping) Subcommands() map[string]Command { return make(map[string]Command) }
+func (p *Ping) description() string             { return "Measures latency" }
+func (p *Ping) usage() string                   { return "" }
+func (p *Ping) detailed() string                { return "Measures latency" }
+func (p *Ping) subcommands() map[string]Command { return make(map[string]Command) }
