@@ -9,8 +9,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// Mgtoggle bool that handles if Multigame is Toggled
 var Mgtoggle bool
 
+// MultiGameFunc handles Multigame
 func MultiGameFunc(s *discordgo.Session, conf *Config) {
 	for {
 		if len(conf.MultiGameStrings) != 0 && conf.MultigameToggled {
@@ -23,15 +25,15 @@ func MultiGameFunc(s *discordgo.Session, conf *Config) {
 		}
 		if conf.MultiGameMinutes < 1 {
 			conf.MultiGameMinutes = 1
-			editConfigfile(conf)
+			EditConfigFile(conf)
 		}
 		time.Sleep(time.Minute * time.Duration(conf.MultiGameMinutes))
 	}
 }
 
-type AddMultiGameString struct{}
+type addMultiGameString struct{}
 
-func (a *AddMultiGameString) Message(ctx *Context) {
+func (a *addMultiGameString) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		em := createEmbed(ctx)
 		game := strings.Join(ctx.Args, " ")
@@ -41,7 +43,7 @@ func (a *AddMultiGameString) Message(ctx *Context) {
 			return
 		}
 		ctx.Conf.MultiGameStrings = append(ctx.Conf.MultiGameStrings, game)
-		editConfigfile(ctx.Conf)
+		EditConfigFile(ctx.Conf)
 		em.Description = fmt.Sprintf("Added **%s** to Multigame", game)
 		ctx.SendEm(em)
 	} else {
@@ -51,23 +53,23 @@ func (a *AddMultiGameString) Message(ctx *Context) {
 	}
 }
 
-func (a *AddMultiGameString) Description() string { return "Adds a string to the Multigame" }
-func (a *AddMultiGameString) Usage() string       { return "<game>" }
-func (a *AddMultiGameString) Detailed() string {
+func (a *addMultiGameString) description() string { return "Adds a string to the Multigame" }
+func (a *addMultiGameString) usage() string       { return "<game>" }
+func (a *addMultiGameString) detailed() string {
 	return "Adds a string to the Multigame."
 }
-func (a *AddMultiGameString) Subcommands() map[string]Command { return make(map[string]Command) }
+func (a *addMultiGameString) subcommands() map[string]Command { return make(map[string]Command) }
 
-type RemoveMultiGameString struct{}
+type removeMultiGameString struct{}
 
-func (r *RemoveMultiGameString) Message(ctx *Context) {
+func (r *removeMultiGameString) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		var pos int
 		em := createEmbed(ctx)
 		game := strings.Join(ctx.Args, " ")
 		if strings.ToLower(game) == "all" {
 			ctx.Conf.MultiGameStrings = []string{}
-			editConfigfile(ctx.Conf)
+			EditConfigFile(ctx.Conf)
 			em.Description = "Removed everything from the list."
 			ctx.SendEm(em)
 			return
@@ -85,7 +87,7 @@ func (r *RemoveMultiGameString) Message(ctx *Context) {
 			ctx.SendEm(em)
 		} else {
 			ctx.Conf.MultiGameStrings = append(ctx.Conf.MultiGameStrings[:pos], ctx.Conf.MultiGameStrings[pos+1:]...)
-			editConfigfile(ctx.Conf)
+			EditConfigFile(ctx.Conf)
 			em.Description = fmt.Sprintf("Removed **%s** from Multigame", game)
 			ctx.SendEm(em)
 		}
@@ -96,16 +98,16 @@ func (r *RemoveMultiGameString) Message(ctx *Context) {
 	}
 }
 
-func (r *RemoveMultiGameString) Description() string { return "Removes a string from Multigame" }
-func (r *RemoveMultiGameString) Usage() string       { return "<game|all>" }
-func (r *RemoveMultiGameString) Detailed() string {
+func (r *removeMultiGameString) description() string { return "Removes a string from Multigame" }
+func (r *removeMultiGameString) usage() string       { return "<game|all>" }
+func (r *removeMultiGameString) detailed() string {
 	return "Removes a string from Multigame. Type All as game to remove everything from the list"
 }
-func (a *RemoveMultiGameString) Subcommands() map[string]Command { return make(map[string]Command) }
+func (r *removeMultiGameString) subcommands() map[string]Command { return make(map[string]Command) }
 
-type MultiGameList struct{}
+type multiGameList struct{}
 
-func (l *MultiGameList) Message(ctx *Context) {
+func (l *multiGameList) message(ctx *Context) {
 	var desc string
 	em := createEmbed(ctx)
 	if len(ctx.Conf.MultiGameStrings) == 0 {
@@ -121,16 +123,16 @@ func (l *MultiGameList) Message(ctx *Context) {
 	ctx.SendEm(em)
 }
 
-func (l *MultiGameList) Description() string { return "Returns your Multigame strings" }
-func (l *MultiGameList) Usage() string       { return "" }
-func (l *MultiGameList) Detailed() string {
+func (l *multiGameList) description() string { return "Returns your Multigame strings" }
+func (l *multiGameList) usage() string       { return "" }
+func (l *multiGameList) detailed() string {
 	return "Returns the list of all your strings in Multigame"
 }
-func (l *MultiGameList) Subcommands() map[string]Command { return make(map[string]Command) }
+func (l *multiGameList) subcommands() map[string]Command { return make(map[string]Command) }
 
-type MultigameTimer struct{}
+type multigameTimer struct{}
 
-func (mgt *MultigameTimer) Message(ctx *Context) {
+func (mgt *multigameTimer) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		em := createEmbed(ctx)
 		delay, err := strconv.Atoi(ctx.Args[0])
@@ -140,7 +142,7 @@ func (mgt *MultigameTimer) Message(ctx *Context) {
 			return
 		}
 		ctx.Conf.MultiGameMinutes = delay
-		editConfigfile(ctx.Conf)
+		EditConfigFile(ctx.Conf)
 		em.Description = fmt.Sprintf("Multigame timer set to **%s** minutes", ctx.Args[0])
 		ctx.SendEm(em)
 	} else {
@@ -150,18 +152,18 @@ func (mgt *MultigameTimer) Message(ctx *Context) {
 	}
 }
 
-func (mgt *MultigameTimer) Description() string {
+func (mgt *multigameTimer) description() string {
 	return "Changes the delay between switches (in minutes)"
 }
-func (mgt *MultigameTimer) Usage() string { return "<minutes>" }
-func (mgt *MultigameTimer) Detailed() string {
+func (mgt *multigameTimer) usage() string { return "<minutes>" }
+func (mgt *multigameTimer) detailed() string {
 	return "Changes the delay between switches (in minutes)"
 }
-func (mgt *MultigameTimer) Subcommands() map[string]Command { return make(map[string]Command) }
+func (mgt *multigameTimer) subcommands() map[string]Command { return make(map[string]Command) }
 
-type MultiGameToggle struct{}
+type multiGameToggle struct{}
 
-func (mgt *MultiGameToggle) Message(ctx *Context) {
+func (mgt *multiGameToggle) message(ctx *Context) {
 	newtoggle := !ctx.Conf.MultigameToggled
 	ctx.Conf.MultigameToggled = newtoggle
 
@@ -170,23 +172,24 @@ func (mgt *MultiGameToggle) Message(ctx *Context) {
 		go MultiGameFunc(ctx.Sess, ctx.Conf)
 	}
 
-	editConfigfile(ctx.Conf)
+	EditConfigFile(ctx.Conf)
 
 	em := createEmbed(ctx)
 	em.Description = fmt.Sprintf("Toggled MultiGame to **%s**", strconv.FormatBool(newtoggle))
 	ctx.SendEm(em)
 }
 
-func (mgt *MultiGameToggle) Description() string { return "Toggles Multigame" }
-func (mgt *MultiGameToggle) Usage() string       { return "" }
-func (mgt *MultiGameToggle) Detailed() string {
+func (mgt *multiGameToggle) description() string { return "Toggles Multigame" }
+func (mgt *multiGameToggle) usage() string       { return "" }
+func (mgt *multiGameToggle) detailed() string {
 	return "Toggles if multigame is on or off."
 }
-func (mgt *MultiGameToggle) Subcommands() map[string]Command { return make(map[string]Command) }
+func (mgt *multiGameToggle) subcommands() map[string]Command { return make(map[string]Command) }
 
+// MultiGame struct handles MultiGame Command
 type MultiGame struct{}
 
-func (mg *MultiGame) Message(ctx *Context) {
+func (mg *MultiGame) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) == 0 {
 		em.Description = "Command `multigame` requires a subcommand!"
@@ -196,11 +199,11 @@ func (mg *MultiGame) Message(ctx *Context) {
 	ctx.SendEm(em)
 }
 
-func (mg *MultiGame) Description() string { return `Commands for Multigame file` }
-func (mg *MultiGame) Usage() string       { return "" }
-func (mg *MultiGame) Detailed() string {
+func (mg *MultiGame) description() string { return `Commands for Multigame file` }
+func (mg *MultiGame) usage() string       { return "" }
+func (mg *MultiGame) detailed() string {
 	return "Commands related to multigame, the timer based 'playing' changer."
 }
-func (mg *MultiGame) Subcommands() map[string]Command {
-	return map[string]Command{"add": &AddMultiGameString{}, "remove": &RemoveMultiGameString{}, "list": &MultiGameList{}, "timer": &MultigameTimer{}, "toggle": &MultiGameToggle{}}
+func (mg *MultiGame) subcommands() map[string]Command {
+	return map[string]Command{"add": &addMultiGameString{}, "remove": &removeMultiGameString{}, "list": &multiGameList{}, "timer": &multigameTimer{}, "toggle": &multiGameToggle{}}
 }

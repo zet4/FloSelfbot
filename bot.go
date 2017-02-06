@@ -26,7 +26,8 @@ func logerror(e error) {
 	}
 }
 
-func editConfigfile(conf *commands.Config) {
+// EditConfigfile edits the config file using the conf passed
+func EditConfigfile(conf *commands.Config) {
 	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	logwarning(err)
 	defer f.Close()
@@ -51,7 +52,7 @@ func createConfig() *commands.Config {
 	fmt.Scanln(&tempprefix)
 
 	tempconfig := &commands.Config{Token: temptoken, Prefix: tempprefix}
-	editConfigfile(tempconfig)
+	EditConfigfile(tempconfig)
 
 	return tempconfig
 }
@@ -66,9 +67,7 @@ func main() {
 		fmt.Println("No config file found, so let's make one!")
 		conf = createConfig()
 	}
-	editConfigfile(conf)
-
-	editConfigfile(conf)
+	EditConfigfile(conf)
 
 	dg, err := discordgo.New(conf.Token)
 
@@ -121,7 +120,7 @@ func main() {
 		go commands.MultiGameFunc(dg, conf)
 	}
 
-	go BufferLoop(dg)
+	go bufferLoop(dg)
 
 	fmt.Println("Press CTRL-C to exit.")
 	<-make(chan struct{})
@@ -131,39 +130,38 @@ func main() {
 func messageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 	if conf.LogMode {
 		timestamp := time.Now().UTC()
-		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+		logMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
 	}
 }
 
 func messageReactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
 	if conf.LogMode {
 		timestamp := time.Now().UTC()
-		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "RED", m.Emoji.Name, m.Emoji.APIName())
+		logMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "RED", m.Emoji.Name, m.Emoji.APIName())
 	}
 }
 
 func messageEdit(s *discordgo.Session, m *discordgo.MessageUpdate) {
 	if conf.LogMode {
 		timestamp := time.Now().UTC()
-		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "EDI", m.ContentWithMentionsReplaced())
+		logMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "EDI", m.ContentWithMentionsReplaced())
 	}
 }
 
 func messageDelete(s *discordgo.Session, m *discordgo.MessageDelete) {
 	if conf.LogMode {
 		timestamp := time.Now().UTC()
-		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "DEL", m.ContentWithMentionsReplaced())
+		logMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "DEL", m.ContentWithMentionsReplaced())
 	}
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
 	if conf.LogMode {
 		timestamp, _ := m.Timestamp.Parse()
-		LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "MSG", m.ContentWithMentionsReplaced())
+		logMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "MSG", m.ContentWithMentionsReplaced())
 		if len(m.Attachments) != 0 {
 			for _, a := range m.Attachments {
-				LogMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "ATT", a.URL)
+				logMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "ATT", a.URL)
 			}
 		}
 	}

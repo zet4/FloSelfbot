@@ -6,10 +6,10 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
-
+// Quote struct handles Quote Command
 type Quote struct{}
 
-func (q *Quote) Message(ctx *Context) {
+func (q *Quote) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		var qmess *discordgo.Message
 		var mID, cID string
@@ -28,7 +28,7 @@ func (q *Quote) Message(ctx *Context) {
 		}
 		if qmess == nil {
 			em := createEmbed(ctx)
-			em.Description = "Message not found"
+			em.Description = "message not found"
 			ctx.SendEm(em)
 			return
 		}
@@ -47,9 +47,9 @@ func (q *Quote) Message(ctx *Context) {
 	}
 }
 
-func (q *Quote) Description() string { return "Quotes a message" }
-func (q *Quote) Usage() string       { return "<messageID> or <channelID> <messageID>" }
-func (q *Quote) Detailed() string {
+func (q *Quote) description() string { return "Quotes a message" }
+func (q *Quote) usage() string       { return "<messageID> or <channelID> <messageID>" }
+func (q *Quote) detailed() string {
 	return "To find messageID and channelID you first need to turn on Developer mode in discord, then right click any message/channel and click 'Copy ID'"
 }
-func (q *Quote) Subcommands() map[string]Command { return make(map[string]Command) }
+func (q *Quote) subcommands() map[string]Command { return make(map[string]Command) }

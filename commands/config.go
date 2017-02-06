@@ -8,14 +8,14 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type ChangePrefix struct{}
+type changePrefix struct{}
 
-func (cp *ChangePrefix) Message(ctx *Context) {
+func (cp *changePrefix) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		newprefix := strings.Join(ctx.Args, " ")
 		ctx.Conf.Prefix = newprefix
 
-		editConfigfile(ctx.Conf)
+		EditConfigFile(ctx.Conf)
 
 		em := createEmbed(ctx)
 		em.Description = fmt.Sprintf("Changed prefix to **%s**", newprefix)
@@ -27,20 +27,20 @@ func (cp *ChangePrefix) Message(ctx *Context) {
 	}
 }
 
-func (cp *ChangePrefix) Description() string { return `Changes your prefix` }
-func (cp *ChangePrefix) Usage() string       { return "<newprefix>" }
-func (cp *ChangePrefix) Detailed() string {
+func (cp *changePrefix) description() string { return `Changes your prefix` }
+func (cp *changePrefix) usage() string       { return "<newprefix>" }
+func (cp *changePrefix) detailed() string {
 	return "Changes your prefix (You can do the same by editing the config.toml file)"
 }
-func (cp *ChangePrefix) Subcommands() map[string]Command { return make(map[string]Command) }
+func (cp *changePrefix) subcommands() map[string]Command { return make(map[string]Command) }
 
-type ChangeEmbedColor struct{}
+type changeEmbedColor struct{}
 
-func (cec *ChangeEmbedColor) Message(ctx *Context) {
+func (cec *changeEmbedColor) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		if strings.HasPrefix(ctx.Args[0], "#") {
 			ctx.Conf.EmbedColor = ctx.Args[0]
-			editConfigfile(ctx.Conf)
+			EditConfigFile(ctx.Conf)
 			em := createEmbed(ctx)
 			em.Description = fmt.Sprintf("Changed EmbedColor to **%s**", ctx.Args[0])
 			ctx.SendEm(em)
@@ -56,36 +56,36 @@ func (cec *ChangeEmbedColor) Message(ctx *Context) {
 	}
 }
 
-func (cec *ChangeEmbedColor) Description() string { return `Changes your embed color` }
-func (cec *ChangeEmbedColor) Usage() string       { return "<newhex>" }
-func (cec *ChangeEmbedColor) Detailed() string {
+func (cec *changeEmbedColor) description() string { return `Changes your embed color` }
+func (cec *changeEmbedColor) usage() string       { return "<newhex>" }
+func (cec *changeEmbedColor) detailed() string {
 	return "Changes your EmbedColor (You can do the same by editing the config.toml file)"
 }
-func (cec *ChangeEmbedColor) Subcommands() map[string]Command { return make(map[string]Command) }
+func (cec *changeEmbedColor) subcommands() map[string]Command { return make(map[string]Command) }
 
-type ToggleLogMode struct{}
+type toggleLogMode struct{}
 
-func (l *ToggleLogMode) Message(ctx *Context) {
+func (l *toggleLogMode) message(ctx *Context) {
 	newlogmode := !ctx.Conf.LogMode
 	ctx.Conf.LogMode = newlogmode
 
-	editConfigfile(ctx.Conf)
+	EditConfigFile(ctx.Conf)
 
 	em := createEmbed(ctx)
 	em.Description = fmt.Sprintf("Toggled LogMode to **%s**", strconv.FormatBool(newlogmode))
 	ctx.SendEm(em)
 }
 
-func (l *ToggleLogMode) Description() string { return `Toggles logmode` }
-func (l *ToggleLogMode) Usage() string       { return "" }
-func (l *ToggleLogMode) Detailed() string {
+func (l *toggleLogMode) description() string { return `Toggles logmode` }
+func (l *toggleLogMode) usage() string       { return "" }
+func (l *toggleLogMode) detailed() string {
 	return "Toggles Logmode on or off (You can do the same by editing the config.toml file)"
 }
-func (l *ToggleLogMode) Subcommands() map[string]Command { return make(map[string]Command) }
+func (l *toggleLogMode) subcommands() map[string]Command { return make(map[string]Command) }
 
-type ReloadConfig struct{}
+type reloadConfig struct{}
 
-func (r *ReloadConfig) Message(ctx *Context) {
+func (r *reloadConfig) message(ctx *Context) {
 	toml.DecodeFile("config.toml", &ctx.Conf)
 	desc := "Reloaded Config file!\n"
 	em := createEmbed(ctx)
@@ -93,16 +93,16 @@ func (r *ReloadConfig) Message(ctx *Context) {
 	ctx.SendEm(em)
 }
 
-func (r *ReloadConfig) Description() string { return "Reloads the config" }
-func (r *ReloadConfig) Usage() string       { return "" }
-func (r *ReloadConfig) Detailed() string {
+func (r *reloadConfig) description() string { return "Reloads the config" }
+func (r *reloadConfig) usage() string       { return "" }
+func (r *reloadConfig) detailed() string {
 	return "If you made any changes to the config file you dont have to restart the selfbot."
 }
-func (r *ReloadConfig) Subcommands() map[string]Command { return make(map[string]Command) }
+func (r *reloadConfig) subcommands() map[string]Command { return make(map[string]Command) }
 
-type ChangeAutoDeleteTimer struct{}
+type changeAutoDeleteTimer struct{}
 
-func (cadt *ChangeAutoDeleteTimer) Message(ctx *Context) {
+func (cadt *changeAutoDeleteTimer) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		em := createEmbed(ctx)
 		delay, err := strconv.Atoi(ctx.Args[0])
@@ -112,7 +112,7 @@ func (cadt *ChangeAutoDeleteTimer) Message(ctx *Context) {
 			return
 		}
 		ctx.Conf.AutoDeleteSeconds = delay
-		editConfigfile(ctx.Conf)
+		EditConfigFile(ctx.Conf)
 		em.Description = fmt.Sprintf("Autodelete timer set to **%s** seconds", ctx.Args[0])
 		ctx.SendEm(em)
 	} else {
@@ -121,18 +121,19 @@ func (cadt *ChangeAutoDeleteTimer) Message(ctx *Context) {
 		ctx.SendEm(em)
 	}
 }
-func (cadt *ChangeAutoDeleteTimer) Description() string {
+func (cadt *changeAutoDeleteTimer) description() string {
 	return "Changes autodelete timer (in seconds)"
 }
-func (cadt *ChangeAutoDeleteTimer) Usage() string { return "<seconds>" }
-func (cadt *ChangeAutoDeleteTimer) Detailed() string {
+func (cadt *changeAutoDeleteTimer) usage() string { return "<seconds>" }
+func (cadt *changeAutoDeleteTimer) detailed() string {
 	return "Changes how many seconds it takes for the selfbot to delete its post (in seconds) For it to not delete, use 0."
 }
-func (cadt *ChangeAutoDeleteTimer) Subcommands() map[string]Command { return make(map[string]Command) }
+func (cadt *changeAutoDeleteTimer) subcommands() map[string]Command { return make(map[string]Command) }
 
+// Configcommand struct handles Config Command
 type Configcommand struct{}
 
-func (c *Configcommand) Message(ctx *Context) {
+func (c *Configcommand) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) == 0 {
 		em.Description = "Command `config` requires a subcommand!"
@@ -142,11 +143,11 @@ func (c *Configcommand) Message(ctx *Context) {
 	ctx.SendEm(em)
 }
 
-func (c *Configcommand) Description() string { return `Commands for the config file` }
-func (c *Configcommand) Usage() string       { return "" }
-func (c *Configcommand) Detailed() string {
+func (c *Configcommand) description() string { return `Commands for the config file` }
+func (c *Configcommand) usage() string       { return "" }
+func (c *Configcommand) detailed() string {
 	return "Commands related to the config file, like changing color, changing prefix, etc."
 }
-func (c *Configcommand) Subcommands() map[string]Command {
-	return map[string]Command{"togglelogmode": &ToggleLogMode{}, "reload": &ReloadConfig{}, "changeprefix": &ChangePrefix{}, "changecolor": &ChangeEmbedColor{}, "setautodelete": &ChangeAutoDeleteTimer{}}
+func (c *Configcommand) subcommands() map[string]Command {
+	return map[string]Command{"togglelogmode": &toggleLogMode{}, "reload": &reloadConfig{}, "changeprefix": &changePrefix{}, "changecolor": &changeEmbedColor{}, "setautodelete": &changeAutoDeleteTimer{}}
 }

@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
+// Me struct handles Me Command
 type Me struct{}
 
-func (m *Me) Message(ctx *Context) {
+func (m *Me) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) != 0 {
 		text := strings.Join(ctx.Args, " ")
@@ -19,7 +20,7 @@ func (m *Me) Message(ctx *Context) {
 	}
 }
 
-func (m *Me) Description() string             { return "Says stuff" }
-func (m *Me) Usage() string                   { return "<message>" }
-func (m *Me) Detailed() string                { return "Says stuff." }
-func (m *Me) Subcommands() map[string]Command { return make(map[string]Command) }
+func (m *Me) description() string             { return "Says stuff" }
+func (m *Me) usage() string                   { return "<message>" }
+func (m *Me) detailed() string                { return "Says stuff." }
+func (m *Me) subcommands() map[string]Command { return make(map[string]Command) }
