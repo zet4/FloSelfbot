@@ -18,7 +18,7 @@ const (
 	BufferMax int = 65536
 )
 
-var logbuffers map[string]map[string]*bytes.Buffer = make(map[string]map[string]*bytes.Buffer)
+var logbuffers = make(map[string]map[string]*bytes.Buffer)
 var logmintime time.Time
 var logmaxtime time.Time
 
