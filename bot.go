@@ -89,7 +89,7 @@ func main() {
 	dg.AddHandler(messageReactionAdd)
 	dg.AddHandler(messageReactionRemove)
 
-	commandhandler = &commands.CommandHandler{make(map[string]commands.Command)}
+	commandhandler = &commands.CommandHandler{Commands: make(map[string]commands.Command)}
 
 	commandhandler.AddCommand("ping", &commands.Ping{})
 	commandhandler.AddCommand("setgame", &commands.SetGame{})
@@ -138,7 +138,7 @@ func messageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 func messageReactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
 	if conf.LogMode {
 		timestamp := time.Now().UTC()
-		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+		LogMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "RED", m.Emoji.Name, m.Emoji.APIName())
 	}
 }
 
@@ -197,13 +197,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		args = args[1:]
 		channel, err := s.State.Channel(m.ChannelID)
 		if err != nil {
-			channel, err = s.State.PrivateChannel(m.ChannelID)
-			ctx = &commands.Context{conf, invoked, args, channel, nil, m, s}
+			channel, _ = s.State.PrivateChannel(m.ChannelID)
+			ctx = &commands.Context{Conf: conf, Invoked: invoked, Args: args, Channel: channel, Guild: nil, Mess: m, Sess: s}
 		} else {
 			guild, _ := s.State.Guild(channel.GuildID)
-			ctx = &commands.Context{conf, invoked, args, channel, guild, m, s}
+			ctx = &commands.Context{Conf: conf, Invoked: invoked, Args: args, Channel: channel, Guild: guild, Mess: m, Sess: s}
 		}
-		p, err := s.UserChannelPermissions(s.State.User.ID, m.ChannelID)
+		p, _ := s.UserChannelPermissions(s.State.User.ID, m.ChannelID)
 		if channel.Recipient == nil {
 			if p&discordgo.PermissionEmbedLinks != discordgo.PermissionEmbedLinks {
 				s.ChannelMessageDelete(m.ChannelID, m.ID)

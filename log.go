@@ -18,7 +18,7 @@ const (
 	BufferMax int = 65536
 )
 
-var logbuffers map[string]map[string]*bytes.Buffer = make(map[string]map[string]*bytes.Buffer)
+var logbuffers = make(map[string]map[string]*bytes.Buffer)
 var logmintime time.Time
 var logmaxtime time.Time
 
@@ -55,7 +55,7 @@ func SendToBuffer(s *discordgo.Session, ChannelID, str string) {
 		logbuffer.WriteString(str)
 	} else {
 		logbuffer.WriteString(str)
-		if logbuffer.Len() >= logbuffer.Cap() {
+		if logbuffer.Len() >= logbuffer.Cap()-2200 {
 			f, err := GetLogFile(s, gn, cn)
 			logerror(err)
 			if conf.LogModeCompression {
@@ -87,6 +87,9 @@ func BufferLoop(s *discordgo.Session) {
 		if time.Now().After(logmaxtime) {
 			for k, v := range logbuffers {
 				for c, buf := range v {
+					if buf.Len() == 0 {
+						continue
+					}
 					f, err := GetLogFile(s, k, c)
 					logerror(err)
 					if conf.LogModeCompression {
