@@ -8,19 +8,22 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 const (
-	bufferMin int = 4096
+	bufferMin int = 4096 * 2
 	bufferMax int = 65536
 )
 
 var logbuffers = make(map[string]map[string]*bytes.Buffer)
 var logmintime time.Time
 var logmaxtime time.Time
+
+var mutex = &sync.Mutex{}
 
 func sendToBuffer(s *discordgo.Session, ChannelID, str string) {
 	var channel *discordgo.Channel
@@ -39,6 +42,9 @@ func sendToBuffer(s *discordgo.Session, ChannelID, str string) {
 
 	now := time.Now()
 
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	logbuffer, ok := logbuffers[gn][cn]
 
 	if !ok {
@@ -51,10 +57,10 @@ func sendToBuffer(s *discordgo.Session, ChannelID, str string) {
 		logbuffer = buf
 	}
 
+	logbuffer.WriteString(str)
+
 	if now.Before(logmintime) {
-		logbuffer.WriteString(str)
 	} else {
-		logbuffer.WriteString(str)
 		if logbuffer.Len() >= logbuffer.Cap()-2200 {
 			f, err := getLogFile(s, gn, cn)
 			logerror(err)
@@ -80,12 +86,12 @@ func sendToBuffer(s *discordgo.Session, ChannelID, str string) {
 }
 
 func bufferLoop(s *discordgo.Session) {
-	if conf.LogModeMinBuffer < 1 {
-		conf.LogModeMinBuffer = 1
+	if conf.LogModeMinBuffer < 2 {
+		conf.LogModeMinBuffer = 5
 		EditConfigfile(conf)
 	}
-	if conf.LogModeMaxBuffer < 1 {
-		conf.LogModeMaxBuffer = 5
+	if conf.LogModeMaxBuffer < 10 {
+		conf.LogModeMaxBuffer = 20
 		EditConfigfile(conf)
 	}
 	logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Second)
@@ -93,6 +99,7 @@ func bufferLoop(s *discordgo.Session) {
 	for {
 		timer := time.NewTimer(time.Second * time.Duration(conf.LogModeMaxBuffer))
 		<-timer.C
+		mutex.Lock()
 		for k, v := range logbuffers {
 			for c, logbuffer := range v {
 				if logbuffer.Len() == 0 {
@@ -119,6 +126,8 @@ func bufferLoop(s *discordgo.Session) {
 				f.Close()
 			}
 		}
+		mutex.Unlock()
+
 		logmintime = time.Now().Add(time.Duration(conf.LogModeMinBuffer) * time.Second)
 		logmaxtime = time.Now().Add(time.Duration(conf.LogModeMaxBuffer) * time.Second)
 	}
@@ -176,5 +185,5 @@ func getLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	if os.IsNotExist(err) {
 		return os.Create(path)
 	}
-	return os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	return os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
 }
