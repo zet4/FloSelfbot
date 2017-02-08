@@ -26,7 +26,8 @@ func logerror(e error) {
 	}
 }
 
-func editConfigfile(conf *commands.Config) {
+// EditConfigfile edits the config file using the conf passed
+func EditConfigfile(conf *commands.Config) {
 	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	logwarning(err)
 	defer f.Close()
@@ -51,7 +52,7 @@ func createConfig() *commands.Config {
 	fmt.Scanln(&tempprefix)
 
 	tempconfig := &commands.Config{Token: temptoken, Prefix: tempprefix}
-	editConfigfile(tempconfig)
+	EditConfigfile(tempconfig)
 
 	return tempconfig
 }
@@ -66,9 +67,7 @@ func main() {
 		fmt.Println("No config file found, so let's make one!")
 		conf = createConfig()
 	}
-	editConfigfile(conf)
-
-	editConfigfile(conf)
+	EditConfigfile(conf)
 
 	dg, err := discordgo.New(conf.Token)
 
@@ -89,7 +88,7 @@ func main() {
 	dg.AddHandler(messageReactionAdd)
 	dg.AddHandler(messageReactionRemove)
 
-	commandhandler = &commands.CommandHandler{make(map[string]commands.Command)}
+	commandhandler = &commands.CommandHandler{Commands: make(map[string]commands.Command)}
 
 	commandhandler.AddCommand("ping", &commands.Ping{})
 	commandhandler.AddCommand("setgame", &commands.SetGame{})
@@ -138,7 +137,7 @@ func messageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
 func messageReactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
 	if conf.LogMode {
 		timestamp := time.Now().UTC()
-		logMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "REA", m.Emoji.Name, m.Emoji.APIName())
+		logMessageNoAuthor(s, timestamp, m.UserID, m.MessageID, m.ChannelID, "RED", m.Emoji.Name, m.Emoji.APIName())
 	}
 }
 
@@ -188,24 +187,27 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if strings.HasPrefix(strings.ToLower(m.Content), conf.Prefix) {
+	if len(m.Content) > 0 && strings.HasPrefix(strings.ToLower(m.Content), conf.Prefix) {
 		// Setting values for the commands
 		var ctx *commands.Context
-		args := strings.Fields(m.Content[len(conf.Prefix):len(m.Content)])
+		args := strings.Fields(m.Content[len(conf.Prefix):])
 		invoked := args[0]
 		args = args[1:]
+		argstr := m.Content[len(conf.Prefix)+len(invoked):]
+		if argstr != "" {
+			argstr = argstr[1:]
+		}
 		channel, err := s.State.Channel(m.ChannelID)
 		if err != nil {
-			channel, err = s.State.PrivateChannel(m.ChannelID)
-			ctx = &commands.Context{conf, invoked, args, channel, nil, m, s}
+			channel, _ = s.State.PrivateChannel(m.ChannelID)
+			ctx = &commands.Context{Conf: conf, Invoked: invoked, Argstr: argstr, Args: args, Channel: channel, Guild: nil, Mess: m, Sess: s}
 		} else {
 			guild, _ := s.State.Guild(channel.GuildID)
-			ctx = &commands.Context{conf, invoked, args, channel, guild, m, s}
+			ctx = &commands.Context{Conf: conf, Invoked: invoked, Argstr: argstr, Args: args, Channel: channel, Guild: guild, Mess: m, Sess: s}
 		}
-		p, err := s.UserChannelPermissions(s.State.User.ID, m.ChannelID)
+		p, _ := s.UserChannelPermissions(s.State.User.ID, m.ChannelID)
 		if channel.Recipient == nil {
 			if p&discordgo.PermissionEmbedLinks != discordgo.PermissionEmbedLinks {
-				s.ChannelMessageDelete(m.ChannelID, m.ID)
 				logerror(errors.New("THE SELFBOT DOES NOT WORK IN CHANNELS WHERE YOU DONT HAVE EMBEDLINKS PERMISSION"))
 				return
 			}

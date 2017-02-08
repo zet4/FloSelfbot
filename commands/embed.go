@@ -112,8 +112,7 @@ func (e *Embed) parseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 func (e *Embed) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) != 0 {
-		text := strings.Join(ctx.Args, " ")
-		em.Description = text
+		em.Description = ctx.Argstr
 		ctx.SendEmNoDelete(e.parseEmbed(em))
 	} else {
 		em.Description = fmt.Sprintf("***%s*** *was silent...*", ctx.Mess.Author.Username)

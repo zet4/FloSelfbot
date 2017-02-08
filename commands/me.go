@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 )
 
 // Me struct handles Me Command
@@ -11,7 +10,7 @@ type Me struct{}
 func (m *Me) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) != 0 {
-		text := strings.Join(ctx.Args, " ")
+		text := ctx.Argstr
 		em.Description = fmt.Sprintf("***%s*** *%s*", ctx.Mess.Author.Username, text)
 		ctx.SendEmNoDelete(em)
 	} else {

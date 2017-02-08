@@ -6,6 +6,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
+
 // Quote struct handles Quote Command
 type Quote struct{}
 
@@ -21,6 +22,7 @@ func (q *Quote) message(ctx *Context) {
 			cID = ctx.Mess.ChannelID
 		}
 		msgs, err := ctx.Sess.ChannelMessages(cID, 3, ctx.Mess.ID, "", mID)
+		logerror(err)
 		for _, msg := range msgs {
 			if msg.ID == mID {
 				qmess = msg

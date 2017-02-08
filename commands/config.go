@@ -12,7 +12,7 @@ type changePrefix struct{}
 
 func (cp *changePrefix) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
-		newprefix := strings.Join(ctx.Args, " ")
+		newprefix := ctx.Argstr
 		ctx.Conf.Prefix = newprefix
 
 		EditConfigFile(ctx.Conf)

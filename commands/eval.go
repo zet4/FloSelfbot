@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/robertkrimen/otto"
 )
@@ -15,7 +14,7 @@ func (e *Eval) message(ctx *Context) {
 		vm := otto.New()
 		vm.Set("ctx", ctx)
 		vm.Set("ctx.Conf", ctx.Conf)
-		toEval := strings.Join(ctx.Args, " ")
+		toEval := ctx.Argstr
 		executed, err := vm.Run(toEval)
 		em := createEmbed(ctx)
 		if err != nil {

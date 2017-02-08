@@ -36,9 +36,9 @@ type addMultiGameString struct{}
 func (a *addMultiGameString) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		em := createEmbed(ctx)
-		game := strings.Join(ctx.Args, " ")
+		game := ctx.Argstr
 		if strings.ToLower(game) == "all" {
-			em.Description = fmt.Sprintf("**All** can not be added because of problems with the remove command.", game)
+			em.Description = "**All** can not be added because of problems with the remove command."
 			ctx.SendEm(em)
 			return
 		}
@@ -48,7 +48,7 @@ func (a *addMultiGameString) message(ctx *Context) {
 		ctx.SendEm(em)
 	} else {
 		em := createEmbed(ctx)
-		em.Description = "No game name specified!"
+		em.Description = "No multigame name specified!"
 		ctx.SendEm(em)
 	}
 }
@@ -66,7 +66,7 @@ func (r *removeMultiGameString) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		var pos int
 		em := createEmbed(ctx)
-		game := strings.Join(ctx.Args, " ")
+		game := ctx.Argstr
 		if strings.ToLower(game) == "all" {
 			ctx.Conf.MultiGameStrings = []string{}
 			EditConfigFile(ctx.Conf)

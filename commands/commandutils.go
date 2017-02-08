@@ -36,6 +36,7 @@ type Config struct {
 type Context struct {
 	Conf    *Config
 	Invoked string
+	Argstr  string
 	Args    []string
 	Channel *discordgo.Channel
 	Guild   *discordgo.Guild

@@ -3,18 +3,17 @@ package commands
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
 	// AFKMessages contains messages in AFK
-	AFKMessages        []*discordgo.MessageCreate
+	AFKMessages []*discordgo.MessageCreate
 	// AFKstring user-set string that contains why the user is AFK
-	AFKstring          string
+	AFKstring string
 	// AFKMode bool that says if AFKMode is on
-	AFKMode            bool
+	AFKMode bool
 	// AFKMultigameBefore handles if Multigame was on before AFK
 	AFKMultigameBefore bool
 )
@@ -66,7 +65,7 @@ func (a *Afk) message(ctx *Context) {
 		ctx.Sess.UserUpdateStatus(discordgo.StatusOnline)
 	} else {
 		AFKMode = true
-		AFKstring = strings.Join(ctx.Args, " ")
+		AFKstring = ctx.Argstr
 		if ctx.Conf.AFKPlay {
 			var txt string
 			if AFKstring != "" {

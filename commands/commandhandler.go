@@ -36,6 +36,10 @@ func HandleSubcommands(ctx *Context, called Command) (*Context, Command) {
 	if len(ctx.Args) != 0 {
 		scalled, sok := called.subcommands()[strings.ToLower(ctx.Args[0])]
 		if sok {
+			ctx.Argstr = ctx.Argstr[len(ctx.Args[0]):]
+			if ctx.Argstr != "" {
+				ctx.Argstr = ctx.Argstr[1:]
+			}
 			ctx.Invoked += " " + ctx.Args[0]
 			ctx.Args = ctx.Args[1:]
 			return HandleSubcommands(ctx, scalled)
@@ -55,7 +59,7 @@ func (ch *CommandHandler) HandleCommands(ctx *Context) {
 		if ok {
 			ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, ctx.Mess.ID)
 			rctx, rcalled := HandleSubcommands(ctx, called)
-			rcalled.message(rctx)
+			go rcalled.message(rctx)
 		} else {
 			logerror(errors.New(`Command "` + ctx.Invoked + `" not found`))
 		}

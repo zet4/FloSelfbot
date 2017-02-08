@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 )
 
 // SetGame struct handles SetGame Command
@@ -11,7 +10,7 @@ type SetGame struct{}
 func (sg *SetGame) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		em := createEmbed(ctx)
-		game := strings.Join(ctx.Args, " ")
+		game := ctx.Argstr
 		em.Description = fmt.Sprintf("Changed game to **%s**", game)
 		ctx.Sess.UpdateStatus(0, game)
 		currentgame = game
