@@ -163,7 +163,7 @@ func logMessageNoAuthor(s *discordgo.Session, timestamp time.Time, uID, mID, cID
 }
 
 func getLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
-	os.MkdirAll(filepath.Join("logs", g), os.ModePerm)
+	os.MkdirAll(filepath.Join("logs", g), 0750)
 	if g != "Direct Message" {
 		_, err := os.Stat(filepath.Join("logs", g, "_servername.txt"))
 		if os.IsNotExist(err) {
@@ -185,5 +185,5 @@ func getLogFile(s *discordgo.Session, g, c string) (*os.File, error) {
 	if os.IsNotExist(err) {
 		return os.Create(path)
 	}
-	return os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	return os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
 }
