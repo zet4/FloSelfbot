@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -34,7 +33,10 @@ func (q *Quote) message(ctx *Context) {
 			ctx.SendEm(em)
 			return
 		}
-		emauthor := &discordgo.MessageEmbedAuthor{Name: qmess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", qmess.Author.ID, qmess.Author.Avatar)}
+
+		authorIcon := discordgo.EndpointUserAvatar(qmess.Author.ID, qmess.Author.Avatar)
+
+		emauthor := &discordgo.MessageEmbedAuthor{Name: qmess.Author.Username, IconURL: authorIcon}
 		timestamp, err := qmess.Timestamp.Parse()
 		logerror(err)
 		timestampo := timestamp.Local().Format(time.ANSIC)
