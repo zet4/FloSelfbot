@@ -11,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-const version string = "3.4"
+	var version = "compiled manually"
 
 var currentgame string
 
