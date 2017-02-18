@@ -78,10 +78,13 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 		ctx.Args = ctx.Args[1:]
 		if ok {
 			sctx, scalled := HandleSubcommands(ctx, called)
-			desc = fmt.Sprintf("`%s%s %s`\n%s\nSubcommands:", ctx.Conf.Prefix, command+sctx.Invoked, scalled.usage(), scalled.detailed())
-			desc += fmt.Sprintf(" `%shelp %s [subcommand]` for more info!", ctx.Conf.Prefix, command+sctx.Invoked)
-			for k, v := range scalled.subcommands() {
-				desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, v.description())
+			desc = fmt.Sprintf("`%s%s %s`\n%s", ctx.Conf.Prefix, command+sctx.Invoked, scalled.usage(), scalled.detailed())
+			if len(scalled.subcommands()) != 0 {
+				desc += "\nSubcommands:"
+				desc += fmt.Sprintf(" `%shelp %s [subcommand]` for more info!", ctx.Conf.Prefix, command+sctx.Invoked)
+				for k, v := range scalled.subcommands() {
+					desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, v.description())
+				}
 			}
 		} else {
 			desc = "No command called `" + command + "` found!"
