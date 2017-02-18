@@ -33,18 +33,6 @@ type Config struct {
 	SketchyMode        bool
 }
 
-// A Context struct holds variables for Messages
-type Context struct {
-	Conf    *Config
-	Invoked string
-	Argstr  string
-	Args    []string
-	Channel *discordgo.Channel
-	Guild   *discordgo.Guild
-	Mess    *discordgo.MessageCreate
-	Sess    *discordgo.Session
-}
-
 func logwarning(e error) {
 	if e != nil {
 		log.Println(e)
@@ -69,6 +57,18 @@ func EditConfigFile(conf *Config) {
 func waitandDelete(ctx *Context, m *discordgo.Message) {
 	time.Sleep(time.Second * time.Duration(ctx.Conf.AutoDeleteSeconds))
 	ctx.Sess.ChannelMessageDelete(m.ChannelID, m.ID)
+}
+
+// A Context struct holds variables for Messages
+type Context struct {
+	Conf    *Config
+	Invoked string
+	Argstr  string
+	Args    []string
+	Channel *discordgo.Channel
+	Guild   *discordgo.Guild
+	Mess    *discordgo.MessageCreate
+	Sess    *discordgo.Session
 }
 
 // SendEm is a helper function to easily send embeds

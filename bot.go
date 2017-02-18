@@ -82,11 +82,13 @@ func main() {
 		return
 	}
 
+	dg.AddHandlerOnce(ready)
 	dg.AddHandler(messageCreate)
 	dg.AddHandler(messageEdit)
 	dg.AddHandler(messageDelete)
 	dg.AddHandler(messageReactionAdd)
 	dg.AddHandler(messageReactionRemove)
+	dg.AddHandler(guildMemberChunk)
 
 	commandhandler = &commands.CommandHandler{Commands: make(map[string]commands.Command)}
 
@@ -130,6 +132,20 @@ func main() {
 	fmt.Println("Press CTRL-C to exit.")
 	<-make(chan struct{})
 	return
+}
+
+func ready(s *discordgo.Session, r *discordgo.Ready) {
+	for _, g := range r.Guilds {
+		s.RequestGuildMembers(g.ID, "", 0)
+	}
+}
+
+func guildMemberChunk(s *discordgo.Session, c *discordgo.GuildMembersChunk) {
+	for _, g := range s.State.Guilds {
+		if g.ID == c.GuildID {
+			g.Members = append(g.Members, c.Members...)
+		}
+	}
 }
 
 func messageReactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
