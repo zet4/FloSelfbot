@@ -95,6 +95,11 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 	}
 	embed.Author = &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}
 	embed.Description = desc
-	embed.Description += "\n\nFloSelfbot [v" + version + "](https://github.com/Moonlington/FloSelfbot)"
+	embed.Description += "\n\n"
+	embed.Description += versionMarkdown()
 	ctx.SendEm(embed)
+}
+
+func versionMarkdown() (versionMarkdown string) {
+	return "[FloSelfbot](https://github.com/Moonlington/FloSelfbot) " + version
 }
