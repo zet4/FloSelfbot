@@ -34,13 +34,24 @@ func (q *Quote) message(ctx *Context) {
 			return
 		}
 
-		authorIcon := discordgo.EndpointUserAvatar(qmess.Author.ID, qmess.Author.Avatar)
+		// var guild *discordgo.Guild
+		var authorIcon, guildIcon string
+
+		channel, _ := ctx.Sess.Channel(cID)
+		if channel.IsPrivate == false {
+			guild, _ := ctx.Sess.Guild(channel.GuildID)
+			if len(guild.Icon) > 0 {
+				guildIcon = discordgo.EndpointGuildIcon(guild.ID, guild.Icon)
+			}
+		}
+
+		authorIcon = discordgo.EndpointUserAvatar(qmess.Author.ID, qmess.Author.Avatar)
 
 		emauthor := &discordgo.MessageEmbedAuthor{Name: qmess.Author.Username, IconURL: authorIcon}
 		timestamp, err := qmess.Timestamp.Parse()
 		logerror(err)
 		timestampo := timestamp.Local().Format(time.ANSIC)
-		emfooter := &discordgo.MessageEmbedFooter{Text: "Sent | " + timestampo}
+		emfooter := &discordgo.MessageEmbedFooter{Text: "Sent | " + timestampo, IconURL: guildIcon}
 		emcolor := ctx.Sess.State.UserColor(qmess.Author.ID, qmess.ChannelID)
 		em := &discordgo.MessageEmbed{Author: emauthor, Footer: emfooter, Description: qmess.Content, Color: emcolor}
 		ctx.SendEmNoDelete(em)
