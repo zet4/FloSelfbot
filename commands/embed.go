@@ -1,6 +1,7 @@
 package commands
 
 import (
+	JSON "encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -109,6 +110,36 @@ func (e *Embed) parseEmbed(em *discordgo.MessageEmbed) *discordgo.MessageEmbed {
 	em.Description = strings.Replace(strings.Replace(strings.TrimSpace(lastoutput), "\u0014", `]`, -1), "\u0013", `[`, -1)
 	return em
 }
+
+type jsonEmbed struct{}
+
+func (e *jsonEmbed) message(ctx *Context) {
+	if len(ctx.Args) != 0 {
+		var embed *discordgo.MessageEmbed
+		reg := regexp.MustCompile(`\\(.)`)
+		json := reg.ReplaceAllString(ctx.Argstr, `${1}`)
+		err := JSON.Unmarshal([]byte(json), &embed)
+		if err != nil {
+			em := createEmbed(ctx)
+			em.Description = fmt.Sprintf("Parse error:\n%s\n", err.Error())
+
+			em.Description += fmt.Sprintf("```json\n%s\n```", json)
+			ctx.SendEm(em)
+		} else {
+			ctx.SendEmNoDelete(embed)
+		}
+	} else {
+		em := createEmbed(ctx)
+		em.Description = fmt.Sprintf("***%s*** *was silent...*", ctx.Mess.Author.Username)
+		ctx.SendEmNoDelete(em)
+	}
+}
+
+func (e *jsonEmbed) description() string             { return `Embeds stuff, using json` }
+func (e *jsonEmbed) usage() string                   { return "<json>" }
+func (e *jsonEmbed) detailed() string                { return "Embeds stuff, using json." }
+func (e *jsonEmbed) subcommands() map[string]Command { return make(map[string]Command) }
+
 func (e *Embed) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) != 0 {
@@ -120,7 +151,9 @@ func (e *Embed) message(ctx *Context) {
 	}
 }
 
-func (e *Embed) description() string             { return "Embeds stuff" }
-func (e *Embed) usage() string                   { return "<message>" }
-func (e *Embed) detailed() string                { return "Embeds stuff." }
-func (e *Embed) subcommands() map[string]Command { return make(map[string]Command) }
+func (e *Embed) description() string { return "Embeds stuff" }
+func (e *Embed) usage() string       { return "<message>" }
+func (e *Embed) detailed() string    { return "Embeds stuff." }
+func (e *Embed) subcommands() map[string]Command {
+	return map[string]Command{"json": &jsonEmbed{}}
+}
