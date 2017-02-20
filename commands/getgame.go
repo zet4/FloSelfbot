@@ -7,8 +7,8 @@ type GetGame struct{}
 
 func (gg *GetGame) message(ctx *Context) {
 	em := createEmbed(ctx)
-	if currentgame != "" {
-		em.Description = fmt.Sprintf("Current game is **%s**", currentgame)
+	if CurrentGame != "" {
+		em.Description = fmt.Sprintf("Current game is **%s**", CurrentGame)
 	} else {
 		em.Description = "You are currently playing nothing!"
 	}

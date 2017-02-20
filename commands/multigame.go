@@ -20,7 +20,7 @@ func MultiGameFunc(s *discordgo.Session, conf *Config) {
 			newstring, a := a[0], a[1:]
 			conf.MultiGameStrings = append(a, newstring)
 			err := s.UpdateStatus(0, newstring)
-			currentgame = newstring
+			CurrentGame = newstring
 			logerror(err)
 		}
 		if conf.MultiGameMinutes < 1 {
@@ -35,13 +35,15 @@ type addMultiGameString struct{}
 
 func (a *addMultiGameString) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
-		em := createEmbed(ctx)
 		game := ctx.Argstr
 		if strings.ToLower(game) == "all" {
-			em.Description = "**All** can not be added because of problems with the remove command."
-			ctx.SendEm(em)
+			ctx.QuickSendEm("**All** can not be added because of problems with the remove command.")
+			return
+		} else if strings.ToLower(game) == "current" {
+			ctx.QuickSendEm("**Current** can not be added because of problems with the remove command.")
 			return
 		}
+		em := createEmbed(ctx)
 		ctx.Conf.MultiGameStrings = append(ctx.Conf.MultiGameStrings, game)
 		EditConfigFile(ctx.Conf)
 		em.Description = fmt.Sprintf("Added **%s** to Multigame", game)
@@ -71,6 +73,20 @@ func (r *removeMultiGameString) message(ctx *Context) {
 			ctx.Conf.MultiGameStrings = []string{}
 			EditConfigFile(ctx.Conf)
 			em.Description = "Removed everything from the list."
+			ctx.SendEm(em)
+			return
+		} else if strings.ToLower(game) == "current" {
+			for i, v := range ctx.Conf.MultiGameStrings {
+				if CurrentGame == v {
+					pos = i
+					break
+				} else {
+					pos = -1
+				}
+			}
+			ctx.Conf.MultiGameStrings = append(ctx.Conf.MultiGameStrings[:pos], ctx.Conf.MultiGameStrings[pos+1:]...)
+			EditConfigFile(ctx.Conf)
+			em.Description = fmt.Sprintf("Removed **%s** from Multigame", CurrentGame)
 			ctx.SendEm(em)
 			return
 		}

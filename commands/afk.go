@@ -52,7 +52,7 @@ func (a *Afk) message(ctx *Context) {
 		ctx.Conf.MultigameToggled = AFKMultigameBefore
 		if ctx.Conf.AFKPlay {
 			ctx.Sess.UpdateStatus(0, "")
-			currentgame = ""
+			CurrentGame = ""
 		}
 		var emfields []*discordgo.MessageEmbedField
 		for _, msg := range AFKMessages {
@@ -73,7 +73,7 @@ func (a *Afk) message(ctx *Context) {
 			} else {
 				txt = "AFK"
 			}
-			currentgame = txt
+			CurrentGame = txt
 			err := ctx.Sess.UpdateStatus(0, txt)
 			logerror(err)
 			AFKMultigameBefore = ctx.Conf.MultigameToggled

@@ -13,7 +13,8 @@ import (
 
 var version = "compiled manually"
 
-var currentgame string
+// CurrentGame stores the user's current game
+var CurrentGame string
 
 // A Config struct contains variables used by Commands
 type Config struct {
