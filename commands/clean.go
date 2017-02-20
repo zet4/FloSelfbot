@@ -8,7 +8,7 @@ type Clean struct{}
 func (c *Clean) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		var mID string
-		limit, err := strconv.Atoi(ctx.Argstr)
+		limit, err := strconv.Atoi(ctx.Args[0])
 		if err != nil {
 			ctx.QuickSendEm("Invalid amount specified")
 			return
@@ -25,6 +25,8 @@ func (c *Clean) message(ctx *Context) {
 				logerror(err)
 			}
 		}
+		err = ctx.Sess.ChannelMessageDelete(ctx.Mess.ChannelID, mID)
+		logerror(err)
 	} else {
 		em := createEmbed(ctx)
 		em.Description = "You didn't specify an amount"
@@ -35,6 +37,6 @@ func (c *Clean) message(ctx *Context) {
 func (c *Clean) description() string { return "Cleans up your messages" }
 func (c *Clean) usage() string       { return "<amount>/<messageID>" }
 func (c *Clean) detailed() string {
-	return "If you realise you have been spamming a little, this is the command to use then.\nIf message ID is specified, delete everything you posted until that message. (This does not include that message)"
+	return "If you realise you have been spamming a little, this is the command to use then.\nIf you specify message ID, deletes everything you posted since that message, including that one."
 }
 func (c *Clean) subcommands() map[string]Command { return make(map[string]Command) }
