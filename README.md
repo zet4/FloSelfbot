@@ -11,8 +11,7 @@ Current features
 2.  Embed creator! (see wiki for instructions)
 3.  MultiGame!
 4.  Quoting!
-5.  AFK Handling!
-6.  Other... uh... features!
+5.  Other... uh... features!
 
 ## Table of Contents
 
