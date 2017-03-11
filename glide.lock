@@ -1,10 +1,10 @@
-hash: b59b5e90032365b7816cc419a482390a8e4a168e01dfefcc6c972de1d63d1181
-updated: 2017-02-01T15:18:36.727206364+01:00
+hash: 362cffcffb313dde3db1dd81bae7f81e09cdbb869d6e27fd221700d315115832
+updated: 2017-03-11T03:02:29.888698794+01:00
 imports:
 - name: github.com/BurntSushi/toml
   version: bbd5bb678321a0d6e58f1099321dfa73391c1b6f
 - name: github.com/bwmarrin/discordgo
-  version: b07d1c462128256cad11a699557ce73d75222dd8
+  version: c34affbc570dee6050ae15e42b08d9c061a0a3aa
 - name: github.com/gorilla/websocket
   version: c36f2fe5c330f0ac404b616b96c438b8616b1aaf
 - name: github.com/robertkrimen/otto
