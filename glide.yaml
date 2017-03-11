@@ -8,5 +8,5 @@ import:
 - package: github.com/BurntSushi/toml
   version: ~0.2.0
 - package: github.com/bwmarrin/discordgo
-  version: b07d1c462128256cad11a699557ce73d75222dd8
+  version: develop
 - package: github.com/robertkrimen/otto
