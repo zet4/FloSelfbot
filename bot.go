@@ -101,6 +101,9 @@ func main() {
 	commandhandler.AddCommand("config", &commands.Configcommand{})
 	commandhandler.AddCommand("multigame", &commands.MultiGame{})
 	commandhandler.AddCommand("status", &commands.Status{})
+	commandhandler.AddCommand("ban", &commands.Ban{})
+	commandhandler.AddCommand("softban", &commands.Softban{})
+	commandhandler.AddCommand("kick", &commands.Kick{})
 	commandhandler.AddCommand("poll", &commands.Poll{})
 	if conf.SketchyMode {
 		commandhandler.AddCommand("afk", &commands.Afk{})
