@@ -101,6 +101,7 @@ func main() {
 	commandhandler.AddCommand("config", &commands.Configcommand{})
 	commandhandler.AddCommand("multigame", &commands.MultiGame{})
 	commandhandler.AddCommand("status", &commands.Status{})
+	commandhandler.AddCommand("react", &commands.React{})
 	commandhandler.AddCommand("ban", &commands.Ban{})
 	commandhandler.AddCommand("softban", &commands.Softban{})
 	commandhandler.AddCommand("kick", &commands.Kick{})
