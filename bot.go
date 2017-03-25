@@ -110,6 +110,7 @@ func main() {
 	commandhandler.AddCommand("softban", &commands.Softban{})
 	commandhandler.AddCommand("kick", &commands.Kick{})
 	commandhandler.AddCommand("poll", &commands.Poll{})
+	commandhandler.AddCommand("serverinfo", &commands.Sinfo{})
 	if conf.SketchyMode {
 		commandhandler.AddCommand("afk", &commands.Afk{})
 	}
