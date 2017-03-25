@@ -136,6 +136,19 @@ func main() {
 	return
 }
 
+func removeDuplicateMembers(list *[]*discordgo.Member) {
+	found := make(map[string]bool)
+	j := 0
+	for i, x := range *list {
+		if !found[x.User.ID] {
+			found[x.User.ID] = true
+			(*list)[j] = (*list)[i]
+			j++
+		}
+	}
+	*list = (*list)[:j]
+}
+
 func ready(s *discordgo.Session, r *discordgo.Ready) {
 	for _, g := range r.Guilds {
 		s.RequestGuildMembers(g.ID, "", 0)
@@ -145,7 +158,10 @@ func ready(s *discordgo.Session, r *discordgo.Ready) {
 func guildMemberChunk(s *discordgo.Session, c *discordgo.GuildMembersChunk) {
 	for _, g := range s.State.Guilds {
 		if g.ID == c.GuildID {
-			g.Members = append(g.Members, c.Members...)
+			newm := append(g.Members, c.Members...)
+			removeDuplicateMembers(&newm)
+			g.Members = newm
+			break
 		}
 	}
 }

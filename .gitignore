@@ -1,9 +1,9 @@
 *.toml
 *.exe
 logs/
+build/
 FloSelfbot
 *.sh
 *.bat
 *.zip
 *.tgz
-version.txt
