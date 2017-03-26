@@ -28,7 +28,7 @@ func logerror(e error) {
 
 // EditConfigfile edits the config file using the conf passed
 func EditConfigfile(conf *commands.Config) {
-	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0660)
 	logwarning(err)
 	defer f.Close()
 	logwarning(toml.NewEncoder(f).Encode(conf))

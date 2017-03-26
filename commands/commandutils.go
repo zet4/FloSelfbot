@@ -48,7 +48,7 @@ func logerror(e error) {
 // EditConfigFile edits the config.toml file with new info
 // conf: Config struct to edit it to
 func EditConfigFile(conf *Config) {
-	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	f, err := os.OpenFile("config.toml", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0660)
 	logwarning(err)
 	defer f.Close()
 	logwarning(toml.NewEncoder(f).Encode(conf))
