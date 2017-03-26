@@ -4,7 +4,11 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/patrickmn/go-cache"
 )
+
+// MessageCache stores messages using the ID as key
+var MessageCache = cache.New(10*time.Minute, 20*time.Minute)
 
 // Quote struct handles Quote Command
 type Quote struct{}
@@ -13,6 +17,7 @@ func (q *Quote) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		var qmess *discordgo.Message
 		var mID, cID string
+		var ch *discordgo.Channel
 		if len(ctx.Args) > 1 {
 			cID = ctx.Args[0]
 			mID = ctx.Args[1]
@@ -20,25 +25,39 @@ func (q *Quote) message(ctx *Context) {
 			mID = ctx.Args[0]
 			cID = ctx.Mess.ChannelID
 		}
-		msgs, err := ctx.Sess.ChannelMessages(cID, 3, ctx.Mess.ID, "", mID)
-		logerror(err)
+		ch, err := ctx.Sess.State.Channel(cID)
+		if err != nil {
+			chs, _ := ctx.Sess.UserChannels()
+			for _, c := range chs {
+				if c.Recipient.ID == cID {
+					ch = c
+					break
+				}
+			}
+		}
+		msgs, _ := ctx.Sess.ChannelMessages(ch.ID, 3, ctx.Mess.ID, "", mID)
 		for _, msg := range msgs {
 			if msg.ID == mID {
 				qmess = msg
 			}
 		}
 		if qmess == nil {
-			em := createEmbed(ctx)
-			em.Description = "message not found"
-			ctx.SendEm(em)
-			return
+			if x, found := MessageCache.Get(mID); found {
+				qmess = x.(*discordgo.Message)
+				cID = qmess.ChannelID
+			} else {
+				em := createEmbed(ctx)
+				em.Description = "message not found"
+				ctx.SendEm(em)
+				return
+			}
 		}
 
 		// var guild *discordgo.Guild
 		var authorIcon, guildIcon string
 
-		channel, _ := ctx.Sess.Channel(cID)
-		if channel.IsPrivate == false {
+		channel, err := ctx.Sess.Channel(cID)
+		if err == nil && channel.IsPrivate == false {
 			guild, _ := ctx.Sess.Guild(channel.GuildID)
 			if len(guild.Icon) > 0 {
 				guildIcon = discordgo.EndpointGuildIcon(guild.ID, guild.Icon)

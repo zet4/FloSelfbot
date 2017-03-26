@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Moonlington/FloSelfbot/commands"
+	"github.com/patrickmn/go-cache"
 
 	"github.com/BurntSushi/toml"
 	"github.com/bwmarrin/discordgo"
@@ -196,6 +197,9 @@ func messageDelete(s *discordgo.Session, m *discordgo.MessageDelete) {
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	commands.MessageCache.Set(m.ID, m.Message, cache.DefaultExpiration)
+
 	if conf.LogMode {
 		timestamp, _ := m.Timestamp.Parse()
 		logMessage(s, timestamp, m.Message.Author, m.ID, m.ChannelID, "MSG", m.ContentWithMentionsReplaced())
