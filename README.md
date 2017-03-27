@@ -2,6 +2,7 @@
 
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 [![Floretta's Coding Space](https://img.shields.io/badge/discord-Floretta's%20Coding%20Space-738bd7.svg?style=flat-square)](https://discordapp.com/invite/pPxa93F)
+[![Patreon](https://img.shields.io/badge/patreon-donate!-orange.svg?style=flat-square)](https://www.patreon.com/floretta)
 
 > Floretta&#39;s selfbot anyone can use.
 
