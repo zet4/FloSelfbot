@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -9,6 +10,62 @@ import (
 
 // MessageCache stores messages using the ID as key
 var MessageCache = cache.New(10*time.Minute, 20*time.Minute)
+
+// QuoteRegex struct handles QuoteRegex Subcommand
+type QuoteRegex struct{}
+
+func (q *QuoteRegex) message(ctx *Context) {
+	var qmess *discordgo.Message
+
+	regex, err := regexp.Compile(ctx.Argstr)
+
+	if err != nil {
+		ctx.QuickSendEm("Error compiling your regex!")
+	}
+
+	msgs, _ := ctx.Sess.ChannelMessages(ctx.Mess.ChannelID, 100, ctx.Mess.ID, "", "")
+	for _, msg := range msgs {
+		if len(regex.FindStringSubmatch(msg.Content)) > 0 {
+			qmess = msg
+			break
+		}
+	}
+	if qmess == nil {
+		em := createEmbed(ctx)
+		em.Description = "Match not found!"
+		ctx.SendEm(em)
+		return
+	}
+
+	// var guild *discordgo.Guild
+	var authorIcon, guildIcon string
+
+	if !ctx.Channel.IsPrivate {
+		if len(ctx.Guild.Icon) > 0 {
+			guildIcon = discordgo.EndpointGuildIcon(ctx.Guild.ID, ctx.Guild.Icon)
+		}
+	}
+
+	authorIcon = discordgo.EndpointUserAvatar(qmess.Author.ID, qmess.Author.Avatar)
+
+	emauthor := &discordgo.MessageEmbedAuthor{Name: qmess.Author.Username, IconURL: authorIcon}
+	timestamp, err := qmess.Timestamp.Parse()
+	logerror(err)
+	timestampo := timestamp.Local().Format(time.ANSIC)
+	emfooter := &discordgo.MessageEmbedFooter{Text: "Sent | " + timestampo, IconURL: guildIcon}
+	emcolor := ctx.Sess.State.UserColor(qmess.Author.ID, qmess.ChannelID)
+	em := &discordgo.MessageEmbed{Author: emauthor, Footer: emfooter, Description: qmess.Content, Color: emcolor}
+	ctx.SendEmNoDelete(em)
+}
+
+func (q *QuoteRegex) description() string {
+	return "Quotes a message in your channel with regex (only the last 100 msgs)"
+}
+func (q *QuoteRegex) usage() string { return "<regex>" }
+func (q *QuoteRegex) detailed() string {
+	return "Use regex to find the latest match"
+}
+func (q *QuoteRegex) subcommands() map[string]Command { return make(map[string]Command) }
 
 // Quote struct handles Quote Command
 type Quote struct{}
@@ -47,7 +104,7 @@ func (q *Quote) message(ctx *Context) {
 				cID = qmess.ChannelID
 			} else {
 				em := createEmbed(ctx)
-				em.Description = "message not found"
+				em.Description = "Message not found!"
 				ctx.SendEm(em)
 				return
 			}
@@ -56,9 +113,8 @@ func (q *Quote) message(ctx *Context) {
 		// var guild *discordgo.Guild
 		var authorIcon, guildIcon string
 
-		channel, err := ctx.Sess.Channel(cID)
-		if err == nil && channel.IsPrivate == false {
-			guild, _ := ctx.Sess.Guild(channel.GuildID)
+		if err == nil && !ch.IsPrivate {
+			guild, _ := ctx.Sess.State.Guild(ch.GuildID)
 			if len(guild.Icon) > 0 {
 				guildIcon = discordgo.EndpointGuildIcon(guild.ID, guild.Icon)
 			}
@@ -86,4 +142,4 @@ func (q *Quote) usage() string       { return "<messageID> or <channelID> <messa
 func (q *Quote) detailed() string {
 	return "To find messageID and channelID you first need to turn on Developer mode in discord, then right click any message/channel and click 'Copy ID'"
 }
-func (q *Quote) subcommands() map[string]Command { return make(map[string]Command) }
+func (q *Quote) subcommands() map[string]Command { return map[string]Command{"regex": &QuoteRegex{}} }
