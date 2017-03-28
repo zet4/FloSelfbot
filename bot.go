@@ -94,8 +94,7 @@ func main() {
 	commandhandler = &commands.CommandHandler{Commands: make(map[string]commands.Command)}
 
 	commandhandler.AddCommand("ping", &commands.Ping{})
-	commandhandler.AddCommand("setgame", &commands.SetGame{})
-	commandhandler.AddCommand("getgame", &commands.GetGame{})
+	commandhandler.AddCommand("game", &commands.Game{})
 	commandhandler.AddCommand("me", &commands.Me{})
 	commandhandler.AddCommand("embed", &commands.Embed{})
 	commandhandler.AddCommand("eval", &commands.Eval{})
