@@ -152,7 +152,8 @@ func removeDuplicateMembers(list *[]*discordgo.Member) {
 }
 
 func ready(s *discordgo.Session, r *discordgo.Ready) {
-	for _, g := range r.Guilds {
+	guilds, _ := s.UserGuilds(100, "", "")
+	for _, g := range guilds {
 		s.RequestGuildMembers(g.ID, "", 0)
 	}
 }
