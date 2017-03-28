@@ -75,6 +75,8 @@ func (q *Quote) message(ctx *Context) {
 		var qmess *discordgo.Message
 		var mID, cID string
 		var ch *discordgo.Channel
+		var err error
+
 		if len(ctx.Args) > 1 {
 			cID = ctx.Args[0]
 			mID = ctx.Args[1]
@@ -82,34 +84,33 @@ func (q *Quote) message(ctx *Context) {
 			mID = ctx.Args[0]
 			cID = ctx.Mess.ChannelID
 		}
-		ch, err := ctx.Sess.State.Channel(cID)
-		if err != nil {
-			chs, _ := ctx.Sess.UserChannels()
-			for _, c := range chs {
-				if c.Recipient.ID == cID {
-					ch = c
-					break
+		if x, found := MessageCache.Get(mID); found {
+			qmess = x.(*discordgo.Message)
+			ch, _ = ctx.Sess.State.Channel(qmess.ChannelID)
+		} else {
+			ch, err = ctx.Sess.State.Channel(cID)
+			if err != nil {
+				chs, _ := ctx.Sess.UserChannels()
+				for _, c := range chs {
+					if c.Recipient.ID == cID {
+						ch = c
+						break
+					}
 				}
 			}
-		}
-		msgs, _ := ctx.Sess.ChannelMessages(ch.ID, 3, ctx.Mess.ID, "", mID)
-		for _, msg := range msgs {
-			if msg.ID == mID {
-				qmess = msg
+			msgs, _ := ctx.Sess.ChannelMessages(ch.ID, 3, ctx.Mess.ID, "", mID)
+			for _, msg := range msgs {
+				if msg.ID == mID {
+					qmess = msg
+				}
 			}
-		}
-		if qmess == nil {
-			if x, found := MessageCache.Get(mID); found {
-				qmess = x.(*discordgo.Message)
-				cID = qmess.ChannelID
-			} else {
+			if qmess == nil {
 				em := createEmbed(ctx)
 				em.Description = "Message not found!"
 				ctx.SendEm(em)
 				return
 			}
 		}
-
 		// var guild *discordgo.Guild
 		var authorIcon, guildIcon string
 
