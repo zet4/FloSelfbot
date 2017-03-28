@@ -91,28 +91,33 @@ func main() {
 	dg.AddHandler(messageReactionRemove)
 	dg.AddHandler(guildMemberChunk)
 
-	commandhandler = &commands.CommandHandler{Commands: make(map[string]commands.Command)}
+	commandhandler = &commands.CommandHandler{Commands: make(map[string]commands.Command), Categories: make(map[string]map[string]commands.Command)}
 
-	commandhandler.AddCommand("ping", &commands.Ping{})
-	commandhandler.AddCommand("game", &commands.Game{})
-	commandhandler.AddCommand("me", &commands.Me{})
-	commandhandler.AddCommand("embed", &commands.Embed{})
-	commandhandler.AddCommand("eval", &commands.Eval{})
-	commandhandler.AddCommand("clean", &commands.Clean{})
-	commandhandler.AddCommand("quote", &commands.Quote{})
-	commandhandler.AddCommand("config", &commands.Configcommand{})
-	commandhandler.AddCommand("multigame", &commands.MultiGame{})
-	commandhandler.AddCommand("status", &commands.Status{})
-	commandhandler.AddCommand("cat", &commands.Cat{})
-	commandhandler.AddCommand("dog", &commands.Dog{})
-	commandhandler.AddCommand("react", &commands.React{})
-	commandhandler.AddCommand("ban", &commands.Ban{})
-	commandhandler.AddCommand("softban", &commands.Softban{})
-	commandhandler.AddCommand("kick", &commands.Kick{})
-	commandhandler.AddCommand("poll", &commands.Poll{})
-	commandhandler.AddCommand("serverinfo", &commands.Sinfo{})
+	commandhandler.AddCommand("ping", "Account/Selfbot-related", &commands.Ping{})
+	commandhandler.AddCommand("game", "Account/Selfbot-related", &commands.Game{})
+	commandhandler.AddCommand("eval", "Account/Selfbot-related", &commands.Eval{})
+	commandhandler.AddCommand("config", "Account/Selfbot-related", &commands.Configcommand{})
+	commandhandler.AddCommand("multigame", "Account/Selfbot-related", &commands.MultiGame{})
+	commandhandler.AddCommand("status", "Account/Selfbot-related", &commands.Status{})
+
+	commandhandler.AddCommand("me", "Embedded", &commands.Me{})
+	commandhandler.AddCommand("embed", "Embedded", &commands.Embed{})
+	commandhandler.AddCommand("quote", "Embedded", &commands.Quote{})
+
+	commandhandler.AddCommand("clean", "Moderation", &commands.Clean{})
+	commandhandler.AddCommand("ban", "Moderation", &commands.Ban{})
+	commandhandler.AddCommand("softban", "Moderation", &commands.Softban{})
+	commandhandler.AddCommand("kick", "Moderation", &commands.Kick{})
+
+	commandhandler.AddCommand("cat", "Fun", &commands.Cat{})
+	commandhandler.AddCommand("dog", "Fun", &commands.Dog{})
+	commandhandler.AddCommand("react", "Fun", &commands.React{})
+	commandhandler.AddCommand("poll", "Fun", &commands.Poll{})
+
+	commandhandler.AddCommand("serverinfo", "Information", &commands.Sinfo{})
+
 	if conf.SketchyMode {
-		commandhandler.AddCommand("afk", &commands.Afk{})
+		commandhandler.AddCommand("afk", "Sketchy", &commands.Afk{})
 	}
 
 	err = dg.Open()

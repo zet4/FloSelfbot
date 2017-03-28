@@ -19,14 +19,25 @@ type Command interface {
 
 // A CommandHandler handles Commands
 type CommandHandler struct {
-	Commands map[string]Command
+	Commands   map[string]Command
+	Categories map[string]map[string]Command
 }
 
 // AddCommand adds a Command to the CommandHandler
 // n: Name for the Command
 // c: Command to add
-func (ch *CommandHandler) AddCommand(n string, c Command) {
+func (ch *CommandHandler) AddCommand(n, category string, c Command) {
 	ch.Commands[n] = c
+	ch.setCategory(category, n, c)
+}
+
+func (ch *CommandHandler) setCategory(category, n string, c Command) {
+	child, ok := ch.Categories[category]
+	if !ok {
+		child = map[string]Command{}
+		ch.Categories[category] = child
+	}
+	child[n] = c
 }
 
 // HandleSubcommands returns the Context and Command that is being called
@@ -80,7 +91,7 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 			sctx, scalled := HandleSubcommands(ctx, called)
 			desc = fmt.Sprintf("`%s%s %s`\n%s", ctx.Conf.Prefix, command+sctx.Invoked, scalled.usage(), scalled.detailed())
 			if len(scalled.subcommands()) != 0 {
-				desc += "\nSubcommands:"
+				desc += "\n\nSubcommands:"
 				desc += fmt.Sprintf(" `%shelp %s [subcommand]` for more info!", ctx.Conf.Prefix, command+sctx.Invoked)
 				for k, v := range scalled.subcommands() {
 					desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, v.description())
@@ -92,8 +103,14 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 	} else {
 		desc = "Commands:"
 		desc += fmt.Sprintf(" `%shelp [command]` for more info!", ctx.Conf.Prefix)
-		for k, v := range ch.Commands {
-			desc += fmt.Sprintf("\n`%s%s` - %s", ctx.Conf.Prefix, k, v.description())
+		for k, v := range ch.Categories {
+			var fdesc string
+			field := &discordgo.MessageEmbedField{Name: k + ":"}
+			for n, c := range v {
+				fdesc += fmt.Sprintf("\n`%s%s` - %s", ctx.Conf.Prefix, n, c.description())
+			}
+			field.Value = fdesc[1:]
+			embed.Fields = append(embed.Fields, field)
 		}
 	}
 	embed.Author = &discordgo.MessageEmbedAuthor{Name: ctx.Mess.Author.Username, IconURL: fmt.Sprintf("https://discordapp.com/api/users/%s/avatars/%s.jpg", ctx.Mess.Author.ID, ctx.Mess.Author.Avatar)}
