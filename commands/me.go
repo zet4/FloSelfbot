@@ -12,11 +12,10 @@ func (m *Me) message(ctx *Context) {
 	if len(ctx.Args) != 0 {
 		text := ctx.Argstr
 		em.Description = fmt.Sprintf("***%s*** *%s*", ctx.Mess.Author.Username, text)
-		ctx.SendEmNoDelete(em)
 	} else {
 		em.Description = fmt.Sprintf("***%s*** *was silent...*", ctx.Mess.Author.Username)
-		ctx.SendEmNoDelete(em)
 	}
+	ctx.SendEmNoDelete(em)
 }
 
 func (m *Me) description() string             { return "Says stuff" }

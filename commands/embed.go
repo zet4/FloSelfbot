@@ -144,11 +144,11 @@ func (e *Embed) message(ctx *Context) {
 	em := createEmbed(ctx)
 	if len(ctx.Args) != 0 {
 		em.Description = ctx.Argstr
-		ctx.SendEmNoDelete(e.parseEmbed(em))
+		em = e.parseEmbed(em)
 	} else {
 		em.Description = fmt.Sprintf("***%s*** *was silent...*", ctx.Mess.Author.Username)
-		ctx.SendEmNoDelete(em)
 	}
+	ctx.SendEmNoDelete(em)
 }
 
 func (e *Embed) description() string { return "Embeds stuff" }
