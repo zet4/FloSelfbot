@@ -115,6 +115,8 @@ func main() {
 	commandhandler.AddCommand("poll", "Fun", &commands.Poll{})
 
 	commandhandler.AddCommand("serverinfo", "Information", &commands.Sinfo{})
+	commandhandler.AddCommand("userinfo", "Information", &commands.Uinfo{})
+	commandhandler.AddCommand("channelinfo", "Information", &commands.Cinfo{})
 
 	if conf.SketchyMode {
 		commandhandler.AddCommand("afk", "Sketchy", &commands.Afk{})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -36,6 +37,11 @@ func (s *Sinfo) message(ctx *Context) {
 		em.Fields = append(em.Fields, &discordgo.MessageEmbedField{
 			Name:   "Owner",
 			Value:  "<@" + ctx.Guild.OwnerID + ">",
+			Inline: true,
+		})
+		em.Fields = append(em.Fields, &discordgo.MessageEmbedField{
+			Name:   "ID",
+			Value:  ctx.Guild.ID,
 			Inline: true,
 		})
 		em.Fields = append(em.Fields, &discordgo.MessageEmbedField{
@@ -80,6 +86,13 @@ func (s *Sinfo) message(ctx *Context) {
 			Value:  fmt.Sprintf("%d total%s", len(ctx.Guild.Members), botmsg),
 			Inline: true,
 		})
+		if t, err := ctx.GetCreationTime(ctx.Guild.ID); err == nil {
+			em.Fields = append(em.Fields, &discordgo.MessageEmbedField{
+				Name:   "Creation",
+				Value:  fmt.Sprintf("%s (%.2f days ago)", t.Format(time.ANSIC), time.Now().Sub(t).Hours()/24),
+				Inline: true,
+			})
+		}
 		ctx.SendEm(em)
 	} else {
 		ctx.QuickSendEm("Command can't be used in DMs!")

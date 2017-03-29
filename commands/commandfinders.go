@@ -113,6 +113,7 @@ func (ctx *Context) GuildGetUserByName(query, GuildID string) (members []*discor
 		return
 	}
 	for _, m := range all {
+		nick := m.Nick
 		u := m.User
 		if id != "" && u.ID == id {
 			exact = append(exact, u)
@@ -121,13 +122,13 @@ func (ctx *Context) GuildGetUserByName(query, GuildID string) (members []*discor
 		if discrim != "" && u.Discriminator != discrim {
 			continue
 		}
-		if u.Username == query {
+		if u.Username == query || (nick != "" && nick == query) {
 			exact = append(exact, u)
-		} else if len(exact) == 0 && strings.ToLower(u.Username) == lowerQuery {
+		} else if len(exact) == 0 && strings.ToLower(u.Username) == lowerQuery || (nick != "" && strings.ToLower(nick) == lowerQuery) {
 			wrongcase = append(wrongcase, u)
-		} else if len(wrongcase) == 0 && strings.HasPrefix(strings.ToLower(u.Username), lowerQuery) {
+		} else if len(wrongcase) == 0 && strings.HasPrefix(strings.ToLower(u.Username), lowerQuery) || (nick != "" && strings.HasPrefix(strings.ToLower(nick), lowerQuery)) {
 			startswith = append(startswith, u)
-		} else if len(startswith) == 0 && strings.Contains(strings.ToLower(u.Username), lowerQuery) {
+		} else if len(startswith) == 0 && strings.Contains(strings.ToLower(u.Username), lowerQuery) || (nick != "" && strings.Contains(strings.ToLower(nick), lowerQuery)) {
 			contains = append(contains, u)
 		}
 	}
@@ -145,16 +146,16 @@ func (ctx *Context) GuildGetUserByName(query, GuildID string) (members []*discor
 
 // ParseTooManyUsers is a helper function to create a message for finding too many users
 // query: String used when finding User
-// list: List of users found
-func (ctx *Context) ParseTooManyUsers(query string, list []*discordgo.User) (*discordgo.Message, error) {
+// users: List of users found
+func (ctx *Context) ParseTooManyUsers(query string, users []*discordgo.User) (*discordgo.Message, error) {
 	out := fmt.Sprintf("Multiple users found for query **%s**:", query)
 	for i := 0; i < 6; i++ {
-		if i < len(list) {
-			out += "\n - " + list[i].Username + " #" + list[i].Discriminator
+		if i < len(users) {
+			out += "\n - " + users[i].Username + " #" + users[i].Discriminator
 		}
 	}
-	if len(list) > 6 {
-		out += "\n**And " + strconv.Itoa(len(list)-6) + " more...**"
+	if len(users) > 6 {
+		out += "\n**And " + strconv.Itoa(len(users)-6) + " more...**"
 	}
 	return ctx.QuickSendEm(out)
 }
