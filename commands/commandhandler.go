@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -93,8 +94,14 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 			if len(scalled.subcommands()) != 0 {
 				desc += "\n\nSubcommands:"
 				desc += fmt.Sprintf(" `%shelp %s [subcommand]` for more info!", ctx.Conf.Prefix, command+sctx.Invoked)
-				for k, v := range scalled.subcommands() {
-					desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, v.description())
+				ckeys := make([]string, 0, len(scalled.subcommands()))
+				for key := range scalled.subcommands() {
+					ckeys = append(ckeys, key)
+				}
+				sc := sort.StringSlice(ckeys)
+				sc.Sort()
+				for _, k := range sc {
+					desc += fmt.Sprintf("\n`%s%s %s` - %s", ctx.Conf.Prefix, command, k, scalled.subcommands()[k].description())
 				}
 			}
 		} else {
@@ -103,11 +110,23 @@ func (ch *CommandHandler) HelpFunction(ctx *Context) {
 	} else {
 		desc = "Commands:"
 		desc += fmt.Sprintf(" `%shelp [command]` for more info!", ctx.Conf.Prefix)
-		for k, v := range ch.Categories {
+		keys := make([]string, 0, len(ch.Categories))
+		for k := range ch.Categories {
+			keys = append(keys, k)
+		}
+		s := sort.StringSlice(keys)
+		s.Sort()
+		for _, k := range s {
 			var fdesc string
 			field := &discordgo.MessageEmbedField{Name: k + ":"}
-			for n, c := range v {
-				fdesc += fmt.Sprintf("\n`%s%s` - %s", ctx.Conf.Prefix, n, c.description())
+			ckeys := make([]string, 0, len(ch.Categories[k]))
+			for key := range ch.Categories[k] {
+				ckeys = append(ckeys, key)
+			}
+			sc := sort.StringSlice(ckeys)
+			sc.Sort()
+			for _, n := range ckeys {
+				fdesc += fmt.Sprintf("\n`%s%s` - %s", ctx.Conf.Prefix, n, ch.Categories[k][n].description())
 			}
 			field.Value = fdesc[1:]
 			embed.Fields = append(embed.Fields, field)
