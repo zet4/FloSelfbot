@@ -36,8 +36,9 @@ func EditConfigfile(conf *commands.Config) {
 }
 
 var (
-	conf           *commands.Config
-	commandhandler *commands.CommandHandler
+	conf              *commands.Config
+	commandhandler    *commands.CommandHandler
+	timebeforeconnect time.Time
 )
 
 func createConfig() *commands.Config {
@@ -123,15 +124,15 @@ func main() {
 		commandhandler.AddCommand("afk", "Sketchy", &commands.Afk{})
 	}
 
+	timebeforeconnect = time.Now()
 	err = dg.Open()
 
 	logwarning(err)
 
 	if conf.SketchyMode {
 		fmt.Println("You have turned on sketchy mode, this enables a few more features of the selfbot.\nBUT be aware that these features can get your account banned! Be careful or turn sketchy mode off.")
+		fmt.Print("\n")
 	}
-	fmt.Println("FloSelfbot is now running.")
-	fmt.Println("Type", conf.Prefix+"help", "to see all commands!")
 
 	if conf.MultigameToggled {
 		commands.Mgtoggle = true
@@ -140,7 +141,6 @@ func main() {
 
 	go bufferLoop(dg)
 
-	fmt.Println("Press CTRL-C to exit.")
 	<-make(chan struct{})
 	return
 }
@@ -163,6 +163,10 @@ func ready(s *discordgo.Session, r *discordgo.Ready) {
 	for _, g := range guilds {
 		s.RequestGuildMembers(g.ID, "", 0)
 	}
+	fmt.Println(fmt.Sprintf("Login successful. (Took %.2f seconds)\nLogged onto %d guilds.\n", time.Since(timebeforeconnect).Seconds(), len(guilds)))
+	fmt.Println("FloSelfbot is now running.")
+	fmt.Println("Type", conf.Prefix+"help", "to see all commands!")
+	fmt.Println("Press CTRL-C to exit.")
 }
 
 func guildMemberChunk(s *discordgo.Session, c *discordgo.GuildMembersChunk) {
@@ -239,7 +243,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if len(m.Content) > 0 && strings.HasPrefix(strings.ToLower(m.Content), conf.Prefix) {
+	if len(m.Content) > 0 && (strings.HasPrefix(strings.ToLower(m.Content), conf.Prefix) || strings.HasPrefix(strings.ToLower(m.Content), "flo.")) {
 		// Setting values for the commands
 		var ctx *commands.Context
 		args := strings.Fields(m.Content[len(conf.Prefix):])
