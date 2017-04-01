@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -8,6 +9,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
+
+// ErrUserFinding is the error it gives when more than 1 or no users are found, used to return commands.
+var ErrUserFinding = errors.New("Found more than 1 or no users")
 
 func removeDuplicateUsers(list *[]*discordgo.User) {
 	found := make(map[string]bool)
@@ -158,4 +162,65 @@ func (ctx *Context) ParseTooManyUsers(query string, users []*discordgo.User) (*d
 		out += "\n**And " + strconv.Itoa(len(users)-6) + " more...**"
 	}
 	return ctx.QuickSendEm(out)
+}
+
+// GetUser is a helper function to get a user by name
+func (ctx *Context) GetUser(args ...string) (user *discordgo.User, err error) {
+	var query, gid string
+	var users []*discordgo.User
+
+	query = args[0]
+
+	if len(args) > 1 {
+		gid = args[1]
+	}
+
+	if gid != "" {
+		users, err = ctx.GuildGetUserByName(query, gid)
+		if err != nil {
+			ctx.QuickSendEm("Error collecting users: " + err.Error())
+			return
+		}
+		if len(users) < 1 {
+			users, err = ctx.GetUserByName(query)
+			if len(users) < 1 {
+				ctx.QuickSendEm("No user found with name **" + query + "**")
+				err = ErrUserFinding
+				return
+			}
+			if err != nil {
+				ctx.QuickSendEm("Error collecting users: " + err.Error())
+				return
+			}
+		}
+		if len(users) > 1 {
+			ctx.ParseTooManyUsers(query, users)
+			err = ErrUserFinding
+			return
+		}
+		user = users[0]
+	} else {
+		users, err = ctx.GetUserByName(query)
+		if err != nil {
+			ctx.QuickSendEm("Error collecting users: " + err.Error())
+			return
+		}
+		if len(users) < 1 {
+			ctx.QuickSendEm("No user found with name **" + query + "**")
+			err = ErrUserFinding
+			return
+		}
+		if len(users) > 1 {
+			ctx.ParseTooManyUsers(query, users)
+			err = ErrUserFinding
+			return
+		}
+		user = users[0]
+	}
+	if len(users) > 1 {
+		ctx.ParseTooManyUsers(query, users)
+		err = ErrUserFinding
+		return
+	}
+	return
 }

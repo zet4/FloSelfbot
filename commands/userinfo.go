@@ -14,49 +14,19 @@ type Uinfo struct{}
 
 func (u *Uinfo) message(ctx *Context) {
 	var user *discordgo.User
-	var users []*discordgo.User
 	var err error
 
 	if len(ctx.Args) > 0 {
 		if !ctx.Channel.IsPrivate {
-			users, err = ctx.GuildGetUserByName(ctx.Argstr, ctx.Channel.GuildID)
+			user, err = ctx.GetUser(ctx.Argstr, ctx.Channel.GuildID)
 			if err != nil {
-				ctx.QuickSendEm("Error collecting users: " + err.Error())
 				return
 			}
-			if len(users) < 1 {
-				users, err = ctx.GetUserByName(ctx.Argstr)
-				if len(users) < 1 {
-					ctx.QuickSendEm("No user found with name **" + ctx.Argstr + "**")
-				}
-				if err != nil {
-					ctx.QuickSendEm("Error collecting users: " + err.Error())
-					return
-				}
-			}
-			if len(users) > 1 {
-				ctx.ParseTooManyUsers(ctx.Argstr, users)
-				return
-			}
-			user = users[0]
 		} else {
-			users, err = ctx.GetUserByName(ctx.Argstr)
+			user, err = ctx.GetUser(ctx.Argstr)
 			if err != nil {
-				ctx.QuickSendEm("Error collecting users: " + err.Error())
 				return
 			}
-			if len(users) < 1 {
-				ctx.QuickSendEm("No user found with name **" + ctx.Argstr + "**")
-			}
-			if len(users) > 1 {
-				ctx.ParseTooManyUsers(ctx.Argstr, users)
-				return
-			}
-			user = users[0]
-		}
-		if len(users) > 1 {
-			ctx.ParseTooManyUsers(ctx.Argstr, users)
-			return
 		}
 	} else {
 		user = ctx.Mess.Author

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -20,24 +19,22 @@ func (e *Softban) message(ctx *Context) {
 	}
 	if len(ctx.Args) != 0 {
 		var reason string
-		if len(ctx.Mess.Mentions) < 1 {
-			ctx.QuickSendEm("You didnt mention a user!")
+		split := strings.SplitN(ctx.Argstr, " for ", 2)
+		if len(split) > 1 {
+			reason = split[1]
+		}
+		user, err := ctx.GetUser(split[0], ctx.Guild.ID)
+		if err != nil {
 			return
 		}
-		reason = strings.TrimSpace(regexp.MustCompile(`^(.*?)<@!?\d+>(.*)$`).ReplaceAllString(ctx.Argstr, "${1}$2"))
+		err = ctx.Sess.GuildMemberDelete(ctx.Guild.ID, user.ID)
+		if err != nil {
+			ctx.QuickSendEm("Error kicking user: " + err.Error())
+			return
+		}
 
-		err := ctx.Sess.GuildBanCreate(ctx.Guild.ID, ctx.Mess.Mentions[0].ID, 1)
-		if err != nil {
-			ctx.QuickSendEm("Error banning user: " + err.Error())
-			return
-		}
-		err = ctx.Sess.GuildBanDelete(ctx.Guild.ID, ctx.Mess.Mentions[0].ID)
-		if err != nil {
-			ctx.QuickSendEm("Error unbanning user: " + err.Error())
-			return
-		}
 		em := createEmbed(ctx)
-		em.Author = &discordgo.MessageEmbedAuthor{IconURL: discordgo.EndpointUserAvatar(ctx.Mess.Mentions[0].ID, ctx.Mess.Mentions[0].Avatar), Name: fmt.Sprintf("Softbanned: %s#%s (%s)", ctx.Mess.Mentions[0].Username, ctx.Mess.Mentions[0].Discriminator, ctx.Mess.Mentions[0].ID)}
+		em.Author = &discordgo.MessageEmbedAuthor{IconURL: discordgo.EndpointUserAvatar(user.ID, user.Avatar), Name: fmt.Sprintf("Softbanned: %s#%s (%s)", user.Username, user.Discriminator, user.ID)}
 		if reason != "" {
 			em.Fields = append(em.Fields, &discordgo.MessageEmbedField{Name: "Reason", Value: reason, Inline: true})
 		}

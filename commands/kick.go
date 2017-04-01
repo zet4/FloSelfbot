@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -19,21 +18,23 @@ func (e *Kick) message(ctx *Context) {
 		return
 	}
 	if len(ctx.Args) != 0 {
-		if len(ctx.Mess.Mentions) < 1 {
-			ctx.QuickSendEm("You didnt mention a user!")
+		var reason string
+		split := strings.SplitN(ctx.Argstr, " for ", 2)
+		if len(split) > 1 {
+			reason = split[1]
+		}
+		user, err := ctx.GetUser(split[0], ctx.Guild.ID)
+		if err != nil {
 			return
 		}
-		var reason string
-		reason = strings.TrimSpace(regexp.MustCompile(`^(.*?)<@!?\d+>(.*)$`).ReplaceAllString(ctx.Argstr, "${1}$2"))
-
-		err := ctx.Sess.GuildMemberDelete(ctx.Guild.ID, ctx.Mess.Mentions[0].ID)
+		err = ctx.Sess.GuildMemberDelete(ctx.Guild.ID, user.ID)
 		if err != nil {
 			ctx.QuickSendEm("Error kicking user: " + err.Error())
 			return
 		}
 
 		em := createEmbed(ctx)
-		em.Author = &discordgo.MessageEmbedAuthor{IconURL: discordgo.EndpointUserAvatar(ctx.Mess.Mentions[0].ID, ctx.Mess.Mentions[0].Avatar), Name: fmt.Sprintf("Kicked: %s#%s (%s)", ctx.Mess.Mentions[0].Username, ctx.Mess.Mentions[0].Discriminator, ctx.Mess.Mentions[0].ID)}
+		em.Author = &discordgo.MessageEmbedAuthor{IconURL: discordgo.EndpointUserAvatar(user.ID, user.Avatar), Name: fmt.Sprintf("Kicked: %s#%s (%s)", user.Username, user.Discriminator, user.ID)}
 		if reason != "" {
 			em.Fields = append(em.Fields, &discordgo.MessageEmbedField{Name: "Reason", Value: reason, Inline: true})
 		}
