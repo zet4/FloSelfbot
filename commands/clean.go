@@ -35,7 +35,7 @@ func (c *Clean) message(ctx *Context) {
 		f.Bool("b", false, "Remove messages from bots.")
 		f.Bool("l", false, "Remove messages containing links.")
 		f.Bool("i", false, "Remove messages containing invites.")
-		f.Bool("e", false, "Remove messages containing links.")
+		f.Bool("e", false, "Remove messages containing embeds.")
 		f.Bool("a", false, "Remove messages containing attachments.")
 		f.Bool("p", false, "Remove messages that are pinned.")
 		f.Bool("invert", false, "Reverses the effects of all the flag filters.")
