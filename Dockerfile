@@ -2,15 +2,14 @@ FROM alpine
 
 MAINTAINER Alexander Schittler <hello@damongant.de>
 
-RUN apk --no-cache add go musl-dev ca-certificates
-
 COPY . /go/src/github.com/Moonlington/FloSelfbot
 
-RUN GOPATH=/go go build --ldflags '-extldflags "-static"' -o /usr/local/bin/FloSelfbot github.com/Moonlington/FloSelfbot
-RUN rm -rf /go && apk del go musl-dev && mkdir /operator && chown -R operator:nobody /operator && chmod 700 /operator
+VOLUME /data
+ENV GOPATH=/go
 
-USER operator
-WORKDIR /operator
-VOLUME /operator
+RUN apk --no-cache add go musl-dev ca-certificates git && go get -d github.com/Moonlington/FloSelfbot && go build --ldflags '-extldflags "-static"' -o /usr/local/bin/FloSelfbot github.com/Moonlington/FloSelfbot && rm -rf /go && apk del go musl-dev go && chown -R nobody:nobody /data && chmod 700 /data
+
+USER nobody
+WORKDIR /data
 
 ENTRYPOINT ["/usr/local/bin/FloSelfbot"]
