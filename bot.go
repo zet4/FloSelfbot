@@ -119,6 +119,7 @@ func main() {
 	commandhandler.AddCommand("userinfo", "Information", &commands.Uinfo{})
 	commandhandler.AddCommand("channelinfo", "Information", &commands.Cinfo{})
 	commandhandler.AddCommand("discrim", "Information", &commands.Discrim{})
+	commandhandler.AddCommand("findemoji", "Information", &commands.FindEmoji{})
 
 	if conf.SketchyMode {
 		commandhandler.AddCommand("afk", "Sketchy", &commands.Afk{})
