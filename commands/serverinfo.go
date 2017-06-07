@@ -27,7 +27,7 @@ func (s *Sinfo) message(ctx *Context) {
 		if len(ctx.Guild.Emojis) > 0 {
 			var buf bytes.Buffer
 			for _, emote := range ctx.Guild.Emojis[0:int(math.Min(float64(40), float64(len(ctx.Guild.Emojis))))] {
-				fmt.Fprintf(&buf, "<:x:%s>", emote.ID)
+				fmt.Fprintf(&buf, "<:z:%s>", emote.ID)
 			}
 			em.Fields = append(em.Fields, &discordgo.MessageEmbedField{
 				Name:  "Emojis (up to 40)",
