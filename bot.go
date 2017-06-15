@@ -240,6 +240,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
+	if conf.HighlightWebhook != "" {
+		commands.HighLightFunc(s, conf, m.Message)
+	}
+
 	// Ignore all messages created by other users
 	if m.Author.ID != s.State.User.ID {
 		return
