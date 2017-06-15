@@ -6,20 +6,24 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 var highlightRegexCache []*regexp.Regexp
+var highlightRegexCacheMutex sync.Mutex
 
 const highlightFormat = "**[$0](.)**"
 
 func highlightRebuildCache(conf *Config) {
+	highlightRegexCacheMutex.Lock()
 	highlightRegexCache = make([]*regexp.Regexp, len(conf.HighlightStrings))
 	for idx, keyword := range conf.HighlightStrings {
 		highlightRegexCache[idx] = regexp.MustCompile(keyword)
 	}
+	highlightRegexCacheMutex.Unlock()
 }
 
 // HighLightFunc handles Highlight
