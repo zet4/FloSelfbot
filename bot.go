@@ -99,6 +99,7 @@ func main() {
 	commandhandler.AddCommand("eval", "Account/Selfbot-related", &commands.Eval{})
 	commandhandler.AddCommand("config", "Account/Selfbot-related", &commands.Configcommand{})
 	commandhandler.AddCommand("multigame", "Account/Selfbot-related", &commands.MultiGame{})
+	commandhandler.AddCommand("highlight", "Account/Selfbot-related", &commands.HighLight{})
 	commandhandler.AddCommand("status", "Account/Selfbot-related", &commands.Status{})
 
 	commandhandler.AddCommand("me", "Embedded", &commands.Me{})

@@ -29,6 +29,8 @@ type Config struct {
 	MultiGameStrings   []string
 	MultiGameMinutes   int
 	MultigameToggled   bool
+	HighlightStrings   []string
+	HighlightWebhook   string
 	AutoDeleteSeconds  int
 	SketchyMode        bool
 }
